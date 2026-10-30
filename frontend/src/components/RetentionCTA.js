@@ -12,7 +12,7 @@ import { ArrowRight, X } from 'lucide-react';
  *   creditsNeeded={20}
  * />
  */
-export default function RetentionCTA({ type, onNext, onDismiss, creditsNeeded = 0 }) {
+export default function RetentionCTA({ type, onNext, creditsNeeded = 0 }) {
   const [dismissed, setDismiss] = useState(false);
 
   if (dismissed) return null;

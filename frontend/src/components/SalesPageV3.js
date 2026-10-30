@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, Sparkles, ShieldCheck, Clock, Mail, Star, BookOpen, Check, Gift,
 } from 'lucide-react';

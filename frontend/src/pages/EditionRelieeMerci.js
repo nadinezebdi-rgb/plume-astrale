@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unescaped-entities */
+ 
 import {useEffect, useState} from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import PsPageShell from '@/components/PsPageShell';

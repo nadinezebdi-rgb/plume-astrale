@@ -170,7 +170,7 @@ const TierCard = ({ tier, onSubscribe, loading, error, alreadyMember, isCurrentT
 
 const CercleSolena = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, session, loading: authLoading } = useAuth();
+  const { isAuthenticated, session } = useAuth();
   const [loading, setLoading] = useState(null); // 'normal' | 'premium' | null
   const [error, setError] = useState('');
   const [status, setStatus] = useState(null);

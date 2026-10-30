@@ -29,7 +29,7 @@ const CENTERS = {
   question:      new THREE.Vector3( 3.0, -1.5, -3.2),
 };
 
-function Constellation({ id, points, center, isActive, isHovered, isDimmed }) {
+function Constellation({ id: _id, points, center, isActive, isHovered, isDimmed }) {
   const groupRef = useRef();
   const pointsMatRef = useRef();
   const lineMatRef = useRef();

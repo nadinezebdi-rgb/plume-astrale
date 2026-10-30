@@ -27,7 +27,7 @@ export default function QuickOracleDebug({ onClose, onSelectPack }) {
   const [selectedSign, setSelectedSign] = useState(null);
   const [oracleData, setOracleData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [debugInfo, setDebugInfo] = useState({});
+  const [, setDebugInfo] = useState({});
 
   useEffect(() => {
     log('Component mounted', { onClose: !!onClose, onSelectPack: !!onSelectPack });

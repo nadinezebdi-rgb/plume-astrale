@@ -82,6 +82,7 @@ export default function PdfFlipbook({ product, title, onClose, testid = 'pdf-fli
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, totalPages, flipping, onClose]);
 
   const pageUrl = useMemo(

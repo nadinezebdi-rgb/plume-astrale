@@ -16,7 +16,6 @@ const SolenaVideoHero = ({ src, poster }) => {
   const videoRef = useRef(null);
   const [muted, setMuted] = useState(true);
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   // Play/pause selon la visibilité du composant (économise du CPU + data mobile)
   useEffect(() => {
@@ -76,8 +75,8 @@ const SolenaVideoHero = ({ src, poster }) => {
         loop
         playsInline
         preload="metadata"
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
+        onPlay={() => {}}
+        onPause={() => {}}
         data-testid="solena-welcome-video"
         aria-label="Message de bienvenue de Soléna, Plume Astrale"
         style={{

@@ -2,7 +2,6 @@ import {useState, useEffect, useRef, lazy, Suspense} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import SEO from '../components/SEO';
 import QuickOracle from '../components/QuickOracle';
 
 const EnhancedMoon3D = lazy(() => import('../components/EnhancedMoon3D'));

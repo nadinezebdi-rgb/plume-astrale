@@ -102,6 +102,7 @@ export default function SynastrieExitIntentModal() {
       document.removeEventListener('mouseout', onMouseOut);
       window.removeEventListener('scroll', onScroll);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const close = () => {

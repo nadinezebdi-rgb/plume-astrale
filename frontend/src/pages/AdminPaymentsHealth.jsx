@@ -68,7 +68,7 @@ function MonthlyReportLauncher({ token, apiBase }) {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch (e) {
+    } catch (_e) {
       setErr('Erreur téléchargement.');
     } finally { setDownloading(false); }
   };

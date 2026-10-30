@@ -108,7 +108,7 @@ const Apercu = () => {
           setTimeout(() => navigate('/resultats'), 1500);
         } else { setDiscountError('Erreur lors de l\'activation'); }
       }
-    } catch (error) { setDiscountError('Une erreur est survenue'); }
+    } catch (_error) { setDiscountError('Une erreur est survenue'); }
     setIsLoading(false);
   };
 

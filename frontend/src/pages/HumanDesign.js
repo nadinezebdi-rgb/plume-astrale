@@ -21,23 +21,6 @@ const CENTER_NAMES_FR = {
   spleen: 'Rate', root: 'Racine',
 };
 
-const CenterDot = ({ name, defined, size = 48 }) => {
-  const fr = CENTER_NAMES_FR[name?.toLowerCase()] || name;
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="rounded-full flex items-center justify-center"
-        style={{
-          width: size, height: size,
-          background: defined ? 'rgba(197,160,89,0.3)' : 'rgba(255,255,255,0.06)',
-          border: `2px solid ${defined ? '#C5A059' : 'rgba(255,255,255,0.2)'}`,
-          color: defined ? '#C5A059' : '#B8B0C8',
-        }}>
-        <span className="text-xs font-medium text-center leading-tight px-1">{fr?.slice(0, 4)}</span>
-      </div>
-    </div>
-  );
-};
-
 export default function HumanDesign() {
   const { isAuthenticated, user, token } = useAuth();
   const navigate = useNavigate();

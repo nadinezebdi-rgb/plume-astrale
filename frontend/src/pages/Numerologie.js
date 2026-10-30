@@ -139,7 +139,7 @@ const Numerologie = () => {
   };
 
   // ── Carte de nombre ──────────────────────────────────────────────────────────
-  const NombreCard = ({ label, nombre, descApi, localDesc, icon, color }) => {
+  const NombreCard = ({ label, nombre, descApi, localDesc, color }) => {
     const col = color || numColor(nombre);
     const titre = typeof localDesc === 'object' ? localDesc?.titre : null;
     const texte = typeof localDesc === 'object' ? localDesc?.texte : (typeof localDesc === 'string' ? localDesc : descApi);

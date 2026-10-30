@@ -362,7 +362,7 @@ const AbonnementCard = ({ subscription, onSouscrire, loading }) => {
 ───────────────────────────────────────────────────────────────── */
 const MonCompte = () => {
   const navigate = useNavigate();
-  const { user, token, creditBalance, logout, refreshBalance, loading: authLoading } = useAuth();
+  const { token, creditBalance, logout, refreshBalance, loading: authLoading } = useAuth();
 
   const [profil, setProfil]               = useState(null);
   const [fidelite, setFidelite]           = useState(null);
@@ -488,6 +488,7 @@ const MonCompte = () => {
     if (activeTab === 'rapports' && archivedReports === null) {
       fetchArchivedReports();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, fetchArchivedReports]);
 
   /* ── Check-in quotidien ── */

@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unescaped-entities */
+ 
 /**
  * ComposerPage.jsx — L'Atelier · Wizard 4 étapes /composer (2026-03 pivot)
  *

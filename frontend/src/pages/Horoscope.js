@@ -1,5 +1,4 @@
 import {useState, useEffect, useCallback, lazy, Suspense} from 'react';
-import PageHero from '@/components/PageHero';
 import PsPageShell from '@/components/PsPageShell';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Star, Heart, Briefcase, Activity, Coins, RefreshCw, Loader2 } from 'lucide-react';
@@ -18,7 +17,6 @@ const Horoscope = () => {
   const [loading, setLoading] = useState(false);
   const [apiData, setApiData] = useState(null);
   const [natalData, setNatalData] = useState(null);
-  const [error, setError] = useState(null);
 
   const getSigneFromDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -71,7 +69,6 @@ const Horoscope = () => {
 
   const fetchHoroscope = useCallback(async (dateStr, period) => {
     setLoading(true);
-    setError(null);
     try {
       const birthDate = new Date(dateStr);
       const params = {

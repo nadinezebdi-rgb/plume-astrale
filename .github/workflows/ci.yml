@@ -73,12 +73,12 @@ jobs:
         working-directory: frontend
         run: yarn install --frozen-lockfile
 
-      - name: ESLint (strict sur errors, warnings tolérés < 100)
+      - name: ESLint (strict · 0 erreur, 0 warning)
         working-directory: frontend
         # AUDIT phase 2 (2026-10-30 · Nao) : 0 erreur tolérée (bloquant).
-        # Lot 5 (soir) : cap 500 → 200 → 100 après 2 passes de nettoyage auto.
-        # 92 warnings restants, à descendre à chaque PR vers 0.
-        run: npx eslint "src/**/*.{js,jsx}" --max-warnings 100
+        # Lot 5 : cap 500 → 200 → 100 après 2 passes de nettoyage auto.
+        # Lot 6 (2026-02 · Nao) : cap 100 → 0 — base propre à préserver.
+        run: npx eslint "src/**/*.{js,jsx}" --max-warnings 0
 
       - name: Build (SKIP_PRERENDER car pas de Chrome en CI)
         working-directory: frontend
