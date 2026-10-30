@@ -8,7 +8,7 @@
  * Aucune sur-charge de témoignages / FAQ ici — la home classique
  * les héberge déjà (NocturneFAQ, /temoignages).
  */
-import React, { useEffect, useRef, useState } from 'react';
+import {useEffect, useRef, useState} from 'react';
 import { Link } from 'react-router-dom';
 import StarfieldBackdrop from '@/components/StarfieldBackdrop';
 

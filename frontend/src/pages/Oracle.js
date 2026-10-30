@@ -41,7 +41,7 @@ export default function Oracle() {
       setResponse(data.answer || "Réponse indisponible");
       setEnriched(!!data.enrichi);
 
-    } catch (err) {
+    } catch (_err) {
       setError("Erreur Oracle");
     } finally {
       setLoading(false);

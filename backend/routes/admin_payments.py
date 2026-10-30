@@ -15,7 +15,8 @@ import os
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, Query
+import stripe
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from routes.admin import require_admin
@@ -29,22 +30,34 @@ router = APIRouter(prefix='/admin', tags=['admin-payments'])
 @router.get('/payments-health')
 async def payments_health(
     days: int = Query(default=30, ge=1, le=365),
+    stuck_after_minutes: int = Query(default=15, ge=1, le=120,
+                                     description="Nombre de minutes après `created_at` avant de considérer une session comme bloquée (défaut 15 min — temps de génération normale)"),
     _admin: dict = Depends(require_admin),
 ) -> Dict[str, Any]:
     """Retourne les KPIs de santé des paiements Stripe.
 
+    Règles ajustées Feb 2026 suite feedback fondatrice :
+      • Déduplication par session_id : chaque session Stripe ne compte qu'UNE fois,
+        même si plusieurs lignes `payment_transactions` existent (retries, double-insert).
+        Préférence : paid > stuck > autres.
+      • Seuil « bloquée » : une session n'est marquée bloquée qu'après `stuck_after_minutes`
+        depuis sa création (défaut : 15 min, temps de génération normal).
+      • Exclusion des e-mails de test (contact@, admin@, test@, @plume-astrale.fr, @test.*,
+        @example.*).
+
     Réponse :
     - overall_status : 'green' | 'orange' | 'red'
     - webhook_secret_configured : bool
-    - conversion_rate_pct : float (paid / (initiated+paid) sur X jours, hors admin bypass)
-    - stuck_sessions_count : nb de sessions RÉELLES `initiated/unpaid` sur X jours
+    - conversion_rate_pct : float (paid / (paid+stuck) sur X jours, hors admin bypass)
+    - stuck_sessions_count : nb de sessions RÉELLES encore `initiated/unpaid` après le seuil
     - stuck_sessions_amount_eur : montant total potentiellement perdu
-    - paid_sessions_count : nb de vraies conversions payées Stripe
+    - paid_sessions_count : nb de vraies conversions payées Stripe (uniques)
     - by_pack : détail par pack_id
     - latest_stuck : 20 dernières sessions bloquées
     """
     sb = get_admin_client()
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    stuck_threshold = datetime.now(timezone.utc) - timedelta(minutes=stuck_after_minutes)
 
     # Toutes les tx sur la fenêtre
     r = (
@@ -60,14 +73,62 @@ async def payments_health(
     # Filtre : uniquement sessions Stripe RÉELLES (exclut admin bypass)
     real = [row for row in rows if (row.get('session_id') or '').startswith('cs_')]
 
+    # ─── Exclusion e-mails de test (fondatrice, admin, testeurs internes) ──
+    def _is_test_email(email: Optional[str]) -> bool:
+        if not email:
+            return False
+        e = email.lower().strip()
+        if '@plume-astrale.fr' in e:          # emails internes
+            return True
+        if e.startswith('contact@') or e.startswith('admin@') or e.startswith('test@'):
+            return True
+        if '@test.' in e or '@example.' in e:  # TLDs de test standards
+            return True
+        if '+test' in e or '+debug' in e:      # alias gmail "+test"
+            return True
+        return False
+
+    real = [row for row in real if not _is_test_email(row.get('user_email'))]
+
+    # ─── Déduplication par session_id (bug fix : évite les 2× la même session) ──
+    def _row_priority(row) -> int:
+        """paid=0 (prio max) > stuck=1 > autres=2 — l'ordre pour `min()`."""
+        if row.get('payment_status') == 'paid':
+            return 0
+        if row.get('status') == 'initiated' and row.get('payment_status') == 'unpaid':
+            return 1
+        return 2
+
+    by_session: Dict[str, dict] = {}
+    for row in real:
+        sid = row.get('session_id')
+        if not sid:
+            continue
+        if sid not in by_session or _row_priority(row) < _row_priority(by_session[sid]):
+            by_session[sid] = row
+    dedup_real = list(by_session.values())
+
     def _tx_ok(row) -> bool:
         return row.get('payment_status') == 'paid'
 
-    def _tx_stuck(row) -> bool:
-        return row.get('status') == 'initiated' and row.get('payment_status') == 'unpaid'
+    def _tx_stuck_after_threshold(row) -> bool:
+        """Session bloquée uniquement si assez vieille (> stuck_after_minutes)."""
+        if row.get('status') != 'initiated' or row.get('payment_status') != 'unpaid':
+            return False
+        created = row.get('created_at')
+        if not created:
+            return True
+        try:
+            # Supabase renvoie '2026-02-27T17:34:12.345+00:00' ou similaire
+            created_dt = datetime.fromisoformat(created.replace('Z', '+00:00'))
+            if created_dt.tzinfo is None:
+                created_dt = created_dt.replace(tzinfo=timezone.utc)
+            return created_dt < stuck_threshold
+        except Exception:
+            return True  # fail-open : si on ne parse pas, on la compte comme bloquée
 
-    paid = [row for row in real if _tx_ok(row)]
-    stuck = [row for row in real if _tx_stuck(row)]
+    paid = [row for row in dedup_real if _tx_ok(row)]
+    stuck = [row for row in dedup_real if _tx_stuck_after_threshold(row)]
 
     total = len(paid) + len(stuck)
     conv_pct = round(100.0 * len(paid) / total, 2) if total else 0.0
@@ -77,11 +138,11 @@ async def payments_health(
     # Par pack
     from collections import defaultdict
     by_pack: Dict[str, Dict[str, Any]] = defaultdict(lambda: {'paid': 0, 'stuck': 0, 'stuck_amount': 0.0})
-    for row in real:
+    for row in dedup_real:
         pack = row.get('pack_id') or 'unknown'
         if _tx_ok(row):
             by_pack[pack]['paid'] += 1
-        elif _tx_stuck(row):
+        elif _tx_stuck_after_threshold(row):
             by_pack[pack]['stuck'] += 1
             by_pack[pack]['stuck_amount'] += float(row.get('amount') or 0)
     by_pack_list = [
@@ -92,10 +153,12 @@ async def payments_health(
     # Webhook secret
     webhook_ok = bool(os.environ.get('STRIPE_WEBHOOK_SECRET', '').strip())
 
-    # Feu tricolore
-    if not webhook_ok or conv_pct < 5:
+    # Feu tricolore — seuils ajustés : « red » exige maintenant des sessions
+    # réellement bloquées (après le seuil 15 min), pas des sessions en cours
+    # de génération.
+    if not webhook_ok or (total >= 10 and conv_pct < 5):
         overall = 'red'
-    elif conv_pct < 15 or len(stuck) > 20:
+    elif (total >= 10 and conv_pct < 15) or len(stuck) > 20:
         overall = 'orange'
     else:
         overall = 'green'
@@ -103,6 +166,7 @@ async def payments_health(
     return {
         'overall_status': overall,
         'window_days': days,
+        'stuck_after_minutes': stuck_after_minutes,
         'webhook_secret_configured': webhook_ok,
         'conversion_rate_pct': conv_pct,
         'stuck_sessions_count': len(stuck),
@@ -275,3 +339,381 @@ async def admin_stripe_webhook_health(_admin: dict = Depends(require_admin)) -> 
         'hints': hints,
         'checked_at': datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ───────────────────────────────────────────────────────────────────────
+# Remboursement Stripe (one-shot, ciblé — pour tests internes / incidents)
+# ───────────────────────────────────────────────────────────────────────
+
+class RefundPayload(BaseModel):
+    session_id: Optional[str] = None       # cs_... (recommandé)
+    payment_intent: Optional[str] = None    # pi_... (alternative directe)
+    reason: Optional[str] = 'requested_by_customer'   # ou 'duplicate' | 'fraudulent'
+    dry_run: bool = True
+    note: Optional[str] = None              # ajouté en metadata du refund
+
+
+@router.post('/stripe-refund')
+async def stripe_refund(payload: RefundPayload, _admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Rembourse 100 % d'un paiement Stripe (ciblé par session_id ou payment_intent).
+
+    - `dry_run=True` (défaut) : retourne les infos du charge sans rembourser.
+    - `dry_run=False` : exécute `stripe.Refund.create(payment_intent=...)`.
+    - `reason` doit être parmi : `requested_by_customer`, `duplicate`, `fraudulent`.
+    - Marque la ligne `payment_transactions` associée avec `metadata.refunded_at`
+      pour cohérence avec le dashboard refund_alert.
+
+    Idempotent côté Stripe : si un refund existe déjà pour le PaymentIntent,
+    Stripe retourne 400 — on le remonte proprement.
+    """
+    api_key = os.environ.get('STRIPE_API_KEY', '').strip()
+    if not api_key:
+        raise HTTPException(500, 'STRIPE_API_KEY non configuré')
+    stripe.api_key = api_key
+
+    allowed_reasons = {'requested_by_customer', 'duplicate', 'fraudulent'}
+    reason = (payload.reason or 'requested_by_customer').strip()
+    if reason not in allowed_reasons:
+        raise HTTPException(400, f'reason invalide — valeurs permises : {sorted(allowed_reasons)}')
+
+    pi_id = (payload.payment_intent or '').strip() or None
+
+    # Résolution : session_id → payment_intent
+    session_dict: Optional[Dict[str, Any]] = None
+    if payload.session_id:
+        try:
+            sess = stripe.checkout.Session.retrieve(payload.session_id.strip())
+            session_dict = sess.to_dict() if hasattr(sess, 'to_dict') else dict(sess)
+            pi_id = pi_id or session_dict.get('payment_intent')
+        except Exception as e:
+            raise HTTPException(404, f'session Stripe introuvable : {e}')
+
+    if not pi_id:
+        raise HTTPException(400, 'session_id OU payment_intent est obligatoire')
+
+    # Infos sur le charge pour le dry-run / confirmation
+    charge_info: Dict[str, Any] = {}
+    try:
+        pi = stripe.PaymentIntent.retrieve(pi_id, expand=['latest_charge'])
+        pi_dict = pi.to_dict() if hasattr(pi, 'to_dict') else dict(pi)
+        latest = pi_dict.get('latest_charge') or {}
+        if hasattr(latest, 'to_dict'):
+            latest = latest.to_dict()
+        charge_info = {
+            'payment_intent': pi_id,
+            'amount': (pi_dict.get('amount') or 0) / 100,
+            'currency': pi_dict.get('currency'),
+            'status': pi_dict.get('status'),
+            'already_refunded': bool(latest.get('refunded')) if isinstance(latest, dict) else False,
+            'charge_id': latest.get('id') if isinstance(latest, dict) else None,
+            'customer_email': (pi_dict.get('receipt_email')
+                               or ((latest or {}).get('billing_details') or {}).get('email')),
+            'card_last4': (((latest or {}).get('payment_method_details') or {}).get('card') or {}).get('last4'),
+        }
+    except Exception as e:
+        raise HTTPException(404, f'PaymentIntent introuvable : {e}')
+
+    if payload.dry_run:
+        return {
+            'dry_run': True,
+            'would_refund': True,
+            'session_id': payload.session_id,
+            'reason': reason,
+            'charge': charge_info,
+            'hint': 'Rappeler ce même endpoint avec `dry_run=false` pour exécuter.',
+        }
+
+    if charge_info.get('already_refunded'):
+        return {
+            'dry_run': False,
+            'refunded': False,
+            'reason_skipped': 'charge déjà remboursé',
+            'charge': charge_info,
+        }
+
+    # Exécution du remboursement
+    try:
+        refund = stripe.Refund.create(
+            payment_intent=pi_id,
+            reason=reason,
+            metadata={
+                'admin_initiated': 'true',
+                'note': (payload.note or '')[:200],
+                'triggered_at': datetime.now(timezone.utc).isoformat(),
+            },
+        )
+        refund_dict = refund.to_dict() if hasattr(refund, 'to_dict') else dict(refund)
+    except stripe.error.StripeError as e:  # type: ignore[attr-defined]
+        logger.warning(f'[stripe_refund] fail pi={pi_id}: {e}')
+        raise HTTPException(400, f'Stripe refund rejeté : {e.user_message or str(e)}')
+
+    # Marque la ligne payment_transactions associée (best-effort)
+    try:
+        sb = get_admin_client()
+        sid = payload.session_id or (session_dict or {}).get('id')
+        if sid:
+            now_iso = datetime.now(timezone.utc).isoformat()
+            r = sb.table('payment_transactions').select('metadata, session_id').eq('session_id', sid).limit(1).execute()
+            if r.data:
+                md = (r.data[0] or {}).get('metadata') or {}
+                md['refunded_at'] = now_iso
+                md['refund_reason'] = reason
+                md['refund_id'] = refund_dict.get('id')
+                sb.table('payment_transactions').update({'metadata': md}).eq('session_id', sid).execute()
+    except Exception as e:
+        logger.info(f'[stripe_refund] marquage DB skip: {e}')
+
+    # ─── AUDIT (2026-10-30 · Nao) ───────────────────────────────────
+    # Génère l'avoir PDF + envoie au client par email (best-effort).
+    # Idempotent par refund_id : rejouer n'alloue pas un nouveau numéro.
+    credit_note_report: Dict[str, Any] = {'ok': False, 'reason': 'not_attempted'}
+    try:
+        from services.credit_note_delivery import send_credit_note_for_refund
+        # Résolution produit depuis payment_transactions / session Stripe
+        product_label = 'Produit Plume Astrale'
+        pack_id: Optional[str] = None
+        try:
+            if sid:
+                r2 = sb.table('payment_transactions').select('pack_id, metadata').eq('session_id', sid).limit(1).execute()
+                if r2.data:
+                    pack_id = (r2.data[0] or {}).get('pack_id')
+                    md2 = (r2.data[0] or {}).get('metadata') or {}
+                    product_label = md2.get('product_label') or md2.get('kind') or pack_id or product_label
+        except Exception:
+            pass
+
+        customer_email = charge_info.get('customer_email') or (session_dict or {}).get('customer_email')
+        if customer_email:
+            credit_note_report = await send_credit_note_for_refund(
+                refund_id=refund_dict.get('id'),
+                session_id=sid,
+                customer_email=customer_email,
+                customer_name=(session_dict or {}).get('customer_details', {}).get('name') if session_dict else None,
+                amount_cents=int((refund_dict.get('amount') or 0)),
+                currency=(refund_dict.get('currency') or 'eur').upper(),
+                product_label=product_label,
+                reason=reason,
+                note=payload.note,
+                refunded_at=datetime.now(timezone.utc),
+            )
+        else:
+            credit_note_report = {'ok': False, 'reason': 'no_customer_email'}
+    except Exception as e:
+        logger.warning(f'[stripe_refund] credit note skip: {e}')
+        credit_note_report = {'ok': False, 'reason': f'exception: {e}'}
+
+    return {
+        'dry_run': False,
+        'refunded': True,
+        'refund_id': refund_dict.get('id'),
+        'amount_refunded': (refund_dict.get('amount') or 0) / 100,
+        'currency': refund_dict.get('currency'),
+        'status': refund_dict.get('status'),
+        'charge': charge_info,
+        'credit_note': credit_note_report,
+    }
+
+
+@router.get('/stripe-refund/find-test-payments')
+async def find_test_payments(
+    amount_eur: float = Query(default=24.0, description='Montant TTC à chercher'),
+    days: int = Query(default=30, ge=1, le=90),
+    _admin: dict = Depends(require_admin),
+) -> Dict[str, Any]:
+    """Liste les paiements correspondant à un montant donné (helper pour trouver
+    la session à rembourser quand on n'a que « j'ai testé pour 24 € »)."""
+    sb = get_admin_client()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    r = (
+        sb.table('payment_transactions')
+        .select('session_id, user_email, pack_id, amount, currency, status, payment_status, created_at, metadata')
+        .eq('payment_status', 'paid')
+        .gte('created_at', cutoff)
+        .order('created_at', desc=True)
+        .limit(100)
+        .execute()
+    )
+    rows = r.data or []
+    matches = [row for row in rows if abs(float(row.get('amount') or 0) - amount_eur) < 0.01]
+    return {
+        'amount_eur': amount_eur,
+        'window_days': days,
+        'count': len(matches),
+        'matches': [
+            {
+                'session_id': row.get('session_id'),
+                'user_email': row.get('user_email'),
+                'pack_id': row.get('pack_id'),
+                'amount': row.get('amount'),
+                'created_at': row.get('created_at'),
+                'already_refunded': bool((row.get('metadata') or {}).get('refunded_at')),
+            }
+            for row in matches
+        ],
+    }
+
+
+
+# ───────────────────────────────────────────────────────────────────────
+# Compteur de facture séquentiel — lecture seule, pour dashboard admin
+# AUDIT (2026-10-30 · Nao) : exposer le numéro courant côté UI.
+# ───────────────────────────────────────────────────────────────────────
+
+@router.get('/invoice-counter')
+async def admin_invoice_counter(_admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Retourne le dernier numéro de facture alloué pour l'année en cours.
+
+    - `year` : année civile courante (UTC)
+    - `last_seq` : dernier `seq` alloué, 0 si aucun
+    - `last_number` : au format FACT-AAAA-NNNNNN, null si last_seq=0
+    - `next_number` : prochain numéro qui sera attribué à la prochaine vente
+    - `backend` : 'mongo' ou 'fallback' (si Mongo indispo, format AAMM-XXXX utilisé)
+
+    Exigence comptable FR : séquence chronologique sans trou volontaire.
+    L'allocation réelle se fait via `services.invoice_counter.allocate_or_get`.
+    """
+    from services.invoice_counter import peek_current_seq, format_number
+    from services.mongo import get_db
+
+    year = datetime.now(timezone.utc).year
+    seq = await peek_current_seq(year)
+    db_ok = get_db() is not None
+    return {
+        'year': year,
+        'last_seq': seq,
+        'last_number': format_number(year, seq) if seq > 0 else None,
+        'next_number': format_number(year, seq + 1) if db_ok else '— (fallback AAMM-XXXX)',
+        'backend': 'mongo' if db_ok else 'fallback',
+        'checked_at': datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@router.get('/credit-note-counter')
+async def admin_credit_note_counter(_admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Même structure que `/invoice-counter`, mais pour les avoirs (format AVOIR-AAAA-NNNNNN).
+
+    Les avoirs sont séquencés INDÉPENDAMMENT des factures (exigence comptable
+    FR : les 2 registres ne se mélangent pas). Mise à jour automatique à
+    chaque POST /admin/stripe-refund (dry_run=false) qui réussit.
+    """
+    from services.credit_note_counter import peek_current_seq, format_number
+    from services.mongo import get_db
+
+    year = datetime.now(timezone.utc).year
+    seq = await peek_current_seq(year)
+    db_ok = get_db() is not None
+    return {
+        'year': year,
+        'last_seq': seq,
+        'last_number': format_number(year, seq) if seq > 0 else None,
+        'next_number': format_number(year, seq + 1) if db_ok else '— (fallback)',
+        'backend': 'mongo' if db_ok else 'fallback',
+        'checked_at': datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ───────────────────────────────────────────────────────────────────────
+# Slack test ping — vérifier manuellement que SLACK_WEBHOOK_URL marche
+# AUDIT (2026-10-30 · Nao) : utile avant d'attendre une vraie alerte stuck.
+# ───────────────────────────────────────────────────────────────────────
+
+@router.post('/slack-test-ping')
+async def admin_slack_test_ping(_admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Envoie un message de test au Slack configuré. Retourne True si 2xx.
+
+    N'écrit rien en DB, n'affecte aucun flux produit. Idéal pour valider
+    la webhook après `secrets_request` ou un changement d'URL.
+    """
+    from services.slack_notify import send_slack_alert, is_configured
+    if not is_configured():
+        return {
+            'ok': False,
+            'configured': False,
+            'reason': 'SLACK_WEBHOOK_URL absent — ajouter la variable dans Emergent Secrets.',
+        }
+    sent = await send_slack_alert(
+        title='Test ping — Plume Astrale',
+        summary='Ce message confirme que la webhook Slack est joignable depuis la prod.',
+        fields=[
+            ('Déclenché par', _admin.get('email') or 'admin'),
+            ('Horodatage UTC', datetime.now(timezone.utc).isoformat(timespec='seconds')),
+        ],
+        url='https://plume-astrale.fr/admin/payments-health',
+        url_label='Ouvrir le dashboard',
+        emoji=':white_check_mark:',
+    )
+    return {
+        'ok': sent,
+        'configured': True,
+        'reason': 'Message envoyé (vérifier le canal Slack).' if sent
+                  else "Appel HTTP vers Slack non-2xx — webhook invalide, canal archivé ou réseau bloqué.",
+    }
+
+
+
+# ───────────────────────────────────────────────────────────────────────
+# Rapport comptable mensuel PDF — factures + avoirs agrégés
+# AUDIT (2026-10-30 · Nao, spark previous session) : 1 clic pour expert-comptable.
+# ───────────────────────────────────────────────────────────────────────
+
+@router.get('/monthly-accounting-report')
+async def admin_monthly_accounting_report(
+    year: int = Query(..., ge=2024, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    inline: bool = Query(False, description="affichage inline navigateur plutôt que download"),
+    _admin: dict = Depends(require_admin),
+):
+    """Génère et renvoie le PDF rapport comptable du mois (année+mois UTC).
+
+    Agrège les factures + avoirs émis dans le mois civil. Totaux calculés
+    à partir de `payment_transactions.amount` joint par session_id / refund_id.
+
+    Toujours re-généré à la demande (pas de cache) — les montants peuvent
+    évoluer tant que le mois n'est pas clos (ex. refund tardif).
+    """
+    from fastapi.responses import Response
+    from services.monthly_accounting_report import build_monthly_report_pdf
+    pdf_bytes, summary = await build_monthly_report_pdf(year, month)
+    filename = f'rapport-comptable-plume-astrale-{year:04d}-{month:02d}.pdf'
+    dispo = 'inline' if inline else 'attachment'
+    return Response(
+        content=pdf_bytes,
+        media_type='application/pdf',
+        headers={
+            'Content-Disposition': f'{dispo}; filename="{filename}"',
+            'X-Report-Period': summary['period'],
+            'X-Invoices-Count': str(summary['invoices_count']),
+            'X-Credit-Notes-Count': str(summary['credit_notes_count']),
+            'X-Total-In-EUR': str(summary['total_in_eur']),
+            'X-Total-Out-EUR': str(summary['total_out_eur']),
+            'X-Net-EUR': str(summary['net_eur']),
+        },
+    )
+
+
+@router.get('/monthly-accounting-report/summary')
+async def admin_monthly_accounting_summary(
+    year: int = Query(..., ge=2024, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    _admin: dict = Depends(require_admin),
+) -> Dict[str, Any]:
+    """Résumé seul (pour afficher les totaux avant de générer le PDF complet)."""
+    from services.monthly_accounting_report import (
+        _fetch_invoices_for_month, _fetch_credit_notes_for_month, _enrich_from_supabase,
+        FR_MONTHS,
+    )
+    invoices = await _fetch_invoices_for_month(year, month)
+    credit_notes = await _fetch_credit_notes_for_month(year, month)
+    _enrich_from_supabase(invoices, credit_notes)
+    total_in = sum(float(r.get('amount') or 0) for r in invoices)
+    total_out = sum(float(r.get('amount') or 0) for r in credit_notes)
+    return {
+        'period': f'{FR_MONTHS[month].capitalize()} {year}',
+        'year': year, 'month': month,
+        'invoices_count': len(invoices),
+        'credit_notes_count': len(credit_notes),
+        'total_in_eur': round(total_in, 2),
+        'total_out_eur': round(total_out, 2),
+        'net_eur': round(total_in - total_out, 2),
+    }
+

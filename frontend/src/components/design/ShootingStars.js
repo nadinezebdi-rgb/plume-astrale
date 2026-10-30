@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-
+import {useEffect, useState, useCallback, useRef} from 'react';
 /**
  * ShootingStars — Étoiles filantes dorées discrètes, globales.
  * Une étoile toutes les ~8-12s, en diagonale. À monter une fois dans App.js

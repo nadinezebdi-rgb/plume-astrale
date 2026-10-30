@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowLeft, Loader2, Heart, Briefcase, Activity, Brain, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -372,7 +372,6 @@ export default function Insights() {
               : results.energy ? (() => {
                 const d = results.energy;
                 const peak = d.peak_times || d.energy_peaks || [];
-                const low = d.low_times || d.energy_lows || [];
                 return (
                   <div>
                     {d.overall_energy !== undefined && (

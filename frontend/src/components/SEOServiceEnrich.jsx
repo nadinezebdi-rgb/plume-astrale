@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { ChevronDown, Sparkles, CheckCircle2 } from 'lucide-react';
 import { SEO_SERVICE_CONTENT } from '../data/seoServiceContent';
 

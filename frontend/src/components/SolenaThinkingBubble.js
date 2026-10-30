@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-
+import {useEffect, useState} from 'react';
 /**
  * SolenaThinkingBubble — Bulle inline "Soléna réfléchit" pour le chat.
  *

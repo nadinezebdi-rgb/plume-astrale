@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * AstroCartoHero — visuel signature de la page /astrocartographie.
  * Une carte du monde très épurée avec 7 lignes planétaires colorées

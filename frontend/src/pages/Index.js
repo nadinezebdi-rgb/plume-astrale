@@ -629,7 +629,7 @@ export default function Index() {
       const data = await res.json();
       if (data.url) { window.location.href = data.url; }
       else { setError(data.detail || 'Impossible de créer la session.'); setLoading(false); }
-    } catch (e) {
+    } catch (_e) {
       setError('Erreur de connexion. Réessaie dans quelques instants.'); setLoading(false);
     }
   };

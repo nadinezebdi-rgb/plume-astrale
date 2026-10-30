@@ -8,7 +8,7 @@
  * • Écoute le scroll pour mettre à jour globalProgress et currentScene
  * • Gère les CTA / choix qui pilotent le store et déclenchent des scrolls
  */
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from 'react';
+import {useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeviceProfile } from './hooks/useDeviceProfile';
 import { useExperienceStore } from './useExperienceStore';

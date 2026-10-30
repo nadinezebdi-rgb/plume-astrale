@@ -1,4 +1,3 @@
-import React from 'react';
 import SalesPageV3 from '@/components/SalesPageV3';
 import SynastrieLeadMagnet from '@/components/SynastrieLeadMagnet';
 import SynastrieExitIntentModal from '@/components/SynastrieExitIntentModal';

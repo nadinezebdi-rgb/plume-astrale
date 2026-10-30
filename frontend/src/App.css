@@ -2,6 +2,30 @@
   min-height: 100vh;
 }
 
+/* AUDIT P2-8 (2026-10-30 · Nao) : lien d'évitement RGAA 12.7 */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  z-index: 10000;
+  padding: 10px 18px;
+  background: #0F1A3C;
+  color: #F5EEE0;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 2px solid #D4AF37;
+  border-radius: 6px;
+  transition: top 180ms ease;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 8px;
+  outline: 2px solid #D4AF37;
+  outline-offset: 2px;
+}
+
 /* ══════════════════════════════════════════════════
   STARFIELD — fond nuit ponctué d'ivoire et d'or
    ══════════════════════════════════════════════════ */

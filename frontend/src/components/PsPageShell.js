@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * PsPageShell — wrapper de page pour la charte v3.
  *

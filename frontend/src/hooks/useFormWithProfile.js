@@ -1,6 +1,4 @@
 import { useUserProfile } from './useUserProfile';
-import { useEffect } from 'react';
-
 /**
  * Hook pour pré-remplir automatiquement un formulaire avec les données du profil.
  * Utilisation: const form = useFormWithProfile();

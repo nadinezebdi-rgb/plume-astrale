@@ -116,8 +116,8 @@ def luxury_styles() -> dict:
                                        fontSize=52, leading=60, textColor=CREAM,
                                        alignment=TA_CENTER, spaceAfter=12),
         'cover_sub':   ParagraphStyle('cover_sub', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
-                                       fontSize=20, leading=28, textColor=GOLD,
-                                       alignment=TA_CENTER, spaceAfter=40),
+                                       fontSize=18, leading=24, textColor=GOLD,
+                                       alignment=TA_CENTER, spaceAfter=20),
         'section_tag': ParagraphStyle('section_tag', fontName=font('Cinzel', 'Helvetica'),
                                        fontSize=10, textColor=GOLD,
                                        alignment=TA_CENTER, spaceAfter=24),
@@ -166,18 +166,18 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
     selon la saison (hiver / printemps / été / automne) et une mention
     « ÉDITION {SAISON} » est ajoutée sous la planète (Lot 5 — Feb 2026).
     """
-    story.append(Spacer(1, 2 * cm))
+    story.append(Spacer(1, 1.2 * cm))
     story.append(Paragraph('<font name="OrnamentSerif">✦</font> PLUME ASTRALE <font name="OrnamentSerif">✦</font>', styles['section_tag']))
     # Titre « Thème Natal » (sans « complet » — c'était le titre marketing
     # externe, pas le titre éditorial du livre). Placé au-dessus du hero
     # pour établir d'emblée la nature du document.
     _book_title_style = styles.get('book_title_cover') or ParagraphStyle(
         'book_title_cover', fontName=font('Cormorant', 'Helvetica'),
-        fontSize=36, leading=42, textColor=GOLD, alignment=TA_CENTER,
-        spaceAfter=18,
+        fontSize=34, leading=38, textColor=GOLD, alignment=TA_CENTER,
+        spaceAfter=12,
     )
     story.append(Paragraph('Thème Natal', _book_title_style))
-    story.append(Spacer(1, 0.4 * cm))
+    story.append(Spacer(1, 0.2 * cm))
 
     img_used = False
 
@@ -189,7 +189,7 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
                 month_to_season, SEASON_LABELS_FR,
             )
             png_bytes = generate_planet_png(sun_sign, size=1200, birth_month=birth_month)
-            img = RLImage(io.BytesIO(png_bytes), width=10 * cm, height=10 * cm, mask='auto')
+            img = RLImage(io.BytesIO(png_bytes), width=8.5 * cm, height=8.5 * cm, mask='auto')
             story.append(img)
             # Petite légende de la planète maîtresse (micro-personnalisation)
             ruler = SIGN_TO_RULER.get(sun_sign, 'Soleil')
@@ -211,7 +211,7 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
                                        fontSize=7, textColor=MUTED, alignment=TA_CENTER,
                                        spaceAfter=2, letterSpacing=3),
                     ))
-            story.append(Spacer(1, 0.6 * cm))
+            story.append(Spacer(1, 0.3 * cm))
             img_used = True
         except Exception:
             img_used = False
@@ -236,13 +236,18 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
             story.append(img)
             story.append(Spacer(1, 1.2 * cm))
 
-    story.append(Paragraph(prenom, styles['cover_title']))
+    _cover_prenom_style = ParagraphStyle(
+        'cover_prenom_fit', fontName=font('Cormorant', 'Helvetica'),
+        fontSize=44, leading=50, textColor=CREAM,
+        alignment=TA_CENTER, spaceAfter=10,
+    )
+    story.append(Paragraph(prenom, _cover_prenom_style))
     story.append(Paragraph(subtitle, styles['cover_sub']))
-    story.append(Spacer(1, 0.6 * cm))
+    story.append(Spacer(1, 0.3 * cm))
     # ═══ Nom du destinataire en dorure gaufrée (édition personnelle) ═══
     from services.pdf_cover_personalization import embossed_name as _embossed
     _embossed(story, prenom, size='medium')
-    story.append(Spacer(1, 0.9 * cm))
+    story.append(Spacer(1, 0.5 * cm))
     # Date FR (fix Feb 2026 : strftime('%B') dépend du locale et sortait
     # en anglais "OCTOBER" en prod. Mapping manuel pour garantir le FR).
     _FR_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -533,6 +538,10 @@ def planet_dense_page(
     # Séparateur ornemental final — pas de PageBreak. Chaque séparateur varie
     # (petite illustration IA ou filet typographique) pour un rythme de livre.
     _append_section_ornament(story, planet_name)
+    # Refonte Feb 2026 — colonne vertébrale 50 pages : chaque section planète
+    # occupe sa propre page. On force le saut de page pour que la numérotation
+    # soit stable et prévisible (p.13–26 pour les 11 planètes + Chiron + Nœuds).
+    story.append(PageBreak())
 
 
 # ─────────────────────────────────────────────────────────────────────

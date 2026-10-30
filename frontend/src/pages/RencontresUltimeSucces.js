@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import {useEffect, useState, useRef} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { CheckCircle2, Loader2, FileText, Mail, Sparkles, ArrowRight, Download, Heart } from 'lucide-react';
@@ -51,7 +51,7 @@ export default function RencontresUltimeSucces() {
         if (s.stage === 'delivered' || s.stage === 'error') return;   // stop polling
         // Continue polling
         pollRef.current = setTimeout(poll, 2000);
-      } catch (e) {
+      } catch (_e) {
         if (cancelled) return;
         if (attempts >= 30) {
           setStatus({ stage: 'error', message: 'Impossible de contacter les astres. Rafraîchis la page dans une minute.' });

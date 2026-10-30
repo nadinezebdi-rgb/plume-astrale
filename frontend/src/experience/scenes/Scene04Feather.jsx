@@ -11,7 +11,7 @@
  * Le sweep cinématique est un sprite additif discret qui traverse le texte,
  * comme un rayon de lumière sur du velours — pas un flash, une caresse.
  */
-import React, { useEffect, useMemo, useRef } from 'react';
+import {useEffect, useMemo, useRef} from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useExperienceStore } from '../useExperienceStore';
@@ -344,9 +344,6 @@ export default function Scene04Feather() {
       const fy = featherTargets[i * 3 + 1];
       const fz = featherTargets[i * 3 + 2];
       const tx = activeTextTargets[i * 3 + 0];
-      const ty = activeTextTargets[i * 3 + 1];
-      const tz = activeTextTargets[i * 3 + 2];
-
       let x, y, z;
 
       if (elapsed < T_END_CHAOS) {

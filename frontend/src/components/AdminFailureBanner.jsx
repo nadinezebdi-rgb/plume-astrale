@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import axios from 'axios';
 import { AlertTriangle, RefreshCw, Loader2, X, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -29,7 +29,7 @@ export default function AdminFailureBanner({ token, dismissable = false }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       setItems(r.data.items || []);
-    } catch (e) {
+    } catch (_e) {
       // silencieux : n'affiche pas de bannière si l'endpoint échoue
     } finally {
       setLoading(false);

@@ -9,7 +9,7 @@
  * souvenu de votre choix" — un des moments les plus émotionnels
  * du parcours.
  */
-import React, { useEffect, useRef, useState } from 'react';
+import {useEffect, useRef, useState} from 'react';
 import { Link } from 'react-router-dom';
 import StarfieldBackdrop from '@/components/StarfieldBackdrop';
 import { useExperienceStore } from '@/experience/useExperienceStore';

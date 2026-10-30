@@ -1,3 +1,433 @@
+## 2026-10-30 (nuit, lot 6) — ESLint 168 → 92 (-45 %, cap CI 200→100)
+
+### ✅ Cleanup ESLint pass 2
+- Script Python one-shot : lit la sortie `eslint --format=json`, pour chaque `no-unused-vars` identifié vérifie que le symbole n'apparaît qu'une seule fois (word-boundary) dans le fichier, puis applique un des patterns suivants :
+  - `, Name` ou `Name,` dans `import { … }`
+  - `import Name from '…'`
+  - `const/let/var Name = …;` sur une ligne
+  - Lignes `import { } from '…';` (vides après nettoyage) → supprimées
+- **83 références inutilisées supprimées dans 49 fichiers.**
+- Cas typiques nettoyés :
+  - App.js : `Index`, `ABTestHome`, `Tarot`, `KabbaleSales`, `ThemeNatalLuxe`, `NosLivres`, `KarmaDestin`, `KarmaDestinPDF`, `KarmaDestinWaiting`, `LectureCompleteSucces`, `LivresLanding`, `DuoCompletionSucces` — lazy-imports de pages renommées/retirées
+  - Icônes lucide-react importées mais pas utilisées (Sparkles, Mail, Star, Share2, Download, ArrowRight, Clock, BookOpen)
+  - Hooks React (useMemo, useEffect) importés mais pas utilisés
+- `.github/workflows/ci.yml` : cap descendu de **200 → 100 warnings**.
+
+### 🧪 Tests
+- Build frontend OK avec cap `--max-warnings 100`.
+- Smoke 5 pages (/, /theme-natal, /cercle-solena, /blog, /livres) : 0 erreur JS, 0 erreur console.
+
+### 🗂️ Fichiers touchés
+- 49 fichiers `frontend/src/**/*.{js,jsx}` (imports nettoyés)
+- `.github/workflows/ci.yml` (cap 100)
+
+### 📈 Progression ESLint sur la soirée
+- Lot 3 : 482 → 168 (-65 %) via `eslint_quickfix.py`
+- Lot 6 : 168 → 92 (-45 %) via JSON-driven cleanup
+- **Total soirée : 482 → 92 (-81 %)**, cap CI 500 → 100
+
+---
+
+
+## 2026-10-30 (nuit, lot 5) — Rapport comptable PDF mensuel + Cooldown Mongo + CSP suggestions
+
+### ✅ Rapport comptable PDF mensuel
+- `services/monthly_accounting_report.py` (nouveau) : agrège factures (`invoice_numbers`) + avoirs (`credit_note_numbers`) du mois civil UTC, enrichit via `payment_transactions` (email, pack, montant, motif), génère un PDF A4 FR en 1 passe.
+- 4 blocs résumé (Factures / CA brut / Avoirs / CA net) + 2 tables détaillées + mention franchise TVA.
+- `routes/admin_payments.py` : 2 endpoints
+  - `GET /api/admin/monthly-accounting-report?year=&month=&inline=` → télécharge le PDF
+  - `GET /api/admin/monthly-accounting-report/summary` → résumé JSON (preview sans régénérer tout)
+- Headers HTTP exposent les totaux (X-Report-Period, X-Invoices-Count, X-Net-EUR, …).
+- Pas de cache : re-généré à chaque appel (le mois peut évoluer avec refunds tardifs).
+
+### ✅ Frontend `MonthlyReportLauncher`
+Sous-composant dans `/admin/payments-health` : sélecteur mois + année + bouton Aperçu (summary JSON) + bouton Télécharger PDF. Résumé 5 colonnes affiché avant téléchargement.
+
+### ✅ Cooldown Mongo-backed (#4)
+- `services/alert_cooldown.py` (nouveau) : lock atomique `channel:key` → Mongo collection `alert_cooldowns` avec index TTL. Fail-open si Mongo down.
+- Remplace les 3 `set()` in-memory par du `try_acquire` persistant (survit aux restarts pod) :
+  - `stuck_sessions_alert._alerted` → `channel="stuck_session"`, TTL = LOOKBACK_HOURS
+  - `csp_reports._alerted_slack` → `channel="csp_violation"`, TTL = CSP_SLACK_WINDOW_H
+  - `credit_note_delivery._MONTHLY_SLACK_FIRED` → `channel="credit_note_monthly"`, TTL = 35j
+- Bug corrigé : BSON stocke les datetimes offset-naive → re-attache `tzinfo=UTC` à la lecture pour comparaison correcte.
+
+### ✅ CSP auto-patch suggestions (#3)
+`AdminCspReports.jsx` : nouvelle colonne "Suggestion CSP" dans la table. Bouton `Copy` qui copie dans le presse-papier la directive à ajouter à `deploy/nginx-frontend.conf` (ex. `script-src https://trusted-cdn.com;`). Logique `buildCspSuggestion` gère les 3 cas : URL (origine), schémas (`data:`, `blob:`), inline/eval (`'unsafe-inline'` / `'unsafe-eval'`). Feedback visuel vert pendant 2s après copie.
+
+### 🧪 Tests
+- `tests/test_alert_cooldown.py` (nouveau, 5 tests) : fail-open, first_acquire, dup, expired, independent channels
+- `tests/test_stuck_sessions_alert.py` : 2 tests mis à jour pour le nouveau cooldown Mongo + 1 nouveau test `test_check_once_cooldown_blocks`
+- 35 pytest passent au total.
+- Build frontend OK avec ESLint strict `--max-warnings 200`.
+- PDF rapport local : 37 KB, summary `{period, invoices_count, credit_notes_count, totals}`.
+
+### 🗂️ Fichiers touchés
+- `backend/services/alert_cooldown.py` (nouveau)
+- `backend/services/monthly_accounting_report.py` (nouveau)
+- `backend/services/credit_note_delivery.py` (cooldown Mongo)
+- `backend/services/stuck_sessions_alert.py` (cooldown Mongo)
+- `backend/routes/csp_reports.py` (cooldown Mongo)
+- `backend/routes/admin_payments.py` (2 endpoints monthly report)
+- `backend/tests/test_alert_cooldown.py` (nouveau)
+- `backend/tests/test_stuck_sessions_alert.py` (mise à jour)
+- `frontend/src/pages/AdminPaymentsHealth.jsx` (MonthlyReportLauncher)
+- `frontend/src/pages/AdminCspReports.jsx` (CspSuggestion + colonne)
+
+### 📋 Env vars
+Pas de nouveau secret. Mongo collection auto-créée au premier appel (`alert_cooldowns`).
+
+---
+
+
+## 2026-10-30 (nuit, lot 4) — Slack monitoring avoirs + ESLint cleanup -65%
+
+### ✅ Alerte Slack mensuelle sur avoirs
+- `services/credit_note_delivery.py` : à chaque avoir généré, check atomique `count_documents` sur `credit_note_numbers` du mois en cours.
+- Si `count >= CREDIT_NOTE_SLACK_THRESHOLD` (défaut 10/mois), ping Slack UNE fois par (année, mois) et par cycle de vie du pod. Dédoublonné via `_MONTHLY_SLACK_FIRED` in-memory.
+- Message Slack : titre, résumé (compte + mois), champs (Mois, Avoirs émis, Seuil), bouton vers `/admin/payments-health`.
+- Fail-silent : si Mongo down ou count fail, l'avoir est quand même émis.
+
+### ✅ ESLint cleanup pass (482 → 168 warnings, -65%)
+- `scripts/eslint_quickfix.py` (nouveau) : script Python qui patche 2 patterns ultra-répétitifs sur `frontend/src/`:
+  1. `import React[, ...]` quand React n'est pas utilisé (JSX transform auto React 17+)
+  2. `catch (e)` / `catch (err)` où le nom n'est pas référencé → renommé en `(_e)` / `(_err)` pour matcher `caughtErrorsIgnorePattern: '^_'`
+- 245 fichiers nettoyés en 1 passe, 0 régression visuelle (6 pages testées en smoke).
+- `.github/workflows/ci.yml` : cap descendu de 500 → **200 warnings**. À descendre à chaque PR.
+
+### 🧪 Tests
+- 27 pytest existants passent toujours (credit_note + slack + invoice + stuck).
+- Build frontend OK avec ESLint strict `--max-warnings 200`.
+- Smoke test 6 pages (/, /cercle-solena, /theme-natal, /livres, /blog, /horoscope/belier) : 0 erreur JS, 0 erreur console.
+
+### 🗂️ Fichiers touchés
+- `backend/services/credit_note_delivery.py` (threshold Slack)
+- `scripts/eslint_quickfix.py` (nouveau)
+- `.github/workflows/ci.yml` (cap 500 → 200)
+- `frontend/src/**/*.{js,jsx}` : 245 fichiers patchés par le quickfix
+
+### 📋 Env vars
+- `CREDIT_NOTE_SLACK_THRESHOLD` (défaut 10) — nb avoirs/mois avant ping Slack. 0 = désactive.
+
+---
+
+
+## 2026-10-30 (nuit, lot 3) — Avoir PDF automatique + ESLint strict
+
+### 🎯 Objectifs
+Enhancement spark de la session précédente : à chaque refund Stripe, générer automatiquement un avoir PDF conforme FR + l'envoyer par email au client. Numérotation séparée AVOIR-AAAA-NNNNNN. Et durcir le CI ESLint.
+
+### ✅ Backend — Avoir PDF
+- `services/credit_note_counter.py` (nouveau) : compteur séquentiel annuel `AVOIR-AAAA-NNNNNN`, idempotent par `refund_id`, index Mongo unique.
+- `services/credit_note_pdf.py` (nouveau) : builder ReportLab A4, miroir de `invoice_pdf.py`. Référence la facture d'origine (si trouvée), motif libellé (requested_by_customer / duplicate / fraudulent), mention franchise TVA.
+- `services/credit_note_delivery.py` (nouveau) : orchestration allocation + lookup facture d'origine (`invoice_numbers.session_id`) + build PDF + envoi Resend. Fail-silent, retourne un rapport `{ok, credit_note_number, email_sent, invoice_ref, reason}`.
+- `routes/admin_payments.py` :
+  - Hook `send_credit_note_for_refund` dans `/stripe-refund` après `stripe.Refund.create` réussi
+  - Ajout `GET /api/admin/credit-note-counter` (même structure que `/invoice-counter`)
+- Les 2 compteurs sont strictement indépendants (exigence comptable FR).
+
+### ✅ Frontend
+- `AdminPaymentsHealth.jsx` :
+  - Charge en parallèle `/invoice-counter` + `/credit-note-counter`
+  - Grille 2 colonnes : facture (icône Receipt, or) + avoir (icône Undo2, rouge)
+  - Rapport refund enrichi : encart « Avoir généré » avec numéro, référence facture d'origine, statut email envoyé
+
+### ✅ ESLint strict (phase 2)
+- `frontend/eslint.config.js` (nouveau) : flat config ESLint v9 ciblée sur les VRAIS bugs (hooks rules, no-undef, no-unused-vars). Pas de règles stylistiques.
+- 3 erreurs critiques fixées :
+  - `CreditGate.js` : `useCredits` du context AuthProvider alias en `spendCredits` (évite fausse alerte `react-hooks/rules-of-hooks`)
+  - `RetentionCTA.js` NotificationBadge : `useEffect` déplacé AVANT le return conditionnel (vrai bug hooks order)
+  - `KarmaDestin.js` : import `Infinity` renommé `InfinityIcon` (shadow de global, inutilisé de toute façon)
+- `.github/workflows/ci.yml` : job ESLint passe de `continue-on-error: true` à **BLOQUANT** avec `--max-warnings 500`. 482 warnings actuels → cap juste au-dessus pour laisser respirer, à descendre à chaque PR.
+
+### 🧪 Tests
+- `tests/test_credit_note.py` (nouveau, 8 tests) :
+  - format_number
+  - allocate_or_get sans Mongo → None
+  - build_credit_note_pdf standard (avec facture d'origine)
+  - build_credit_note_pdf sans facture d'origine (recovery)
+  - REASON_LABELS couvre 3 motifs
+  - send_credit_note_for_refund : no RESEND_API_KEY, success 200, Resend 403
+- 29 tests passent au total (8 credit note + 6 slack + 6 invoice + 3 stuck + 6 sitemap filter)
+- Génération réelle locale : `AVOIR-2026-000001` + PDF 38 KB avec header or, mentions SIRET/TVA/franchise
+
+### 🗂️ Fichiers touchés
+- `backend/services/credit_note_counter.py` (nouveau)
+- `backend/services/credit_note_pdf.py` (nouveau)
+- `backend/services/credit_note_delivery.py` (nouveau)
+- `backend/routes/admin_payments.py` (hook + endpoint)
+- `backend/tests/test_credit_note.py` (nouveau)
+- `frontend/eslint.config.js` (nouveau)
+- `frontend/src/pages/AdminPaymentsHealth.jsx` (2 compteurs + encart avoir)
+- `frontend/src/components/CreditGate.js` (fix hook rule)
+- `frontend/src/components/RetentionCTA.js` (fix hook order)
+- `frontend/src/pages/KarmaDestin.js` (fix shadow Infinity)
+- `.github/workflows/ci.yml` (ESLint bloquant)
+
+### 📋 Prod flow
+À chaque `POST /api/admin/stripe-refund` (dry_run=false) qui réussit :
+1. Stripe refund créé
+2. metadata DB mise à jour (refunded_at, refund_id)
+3. Numéro avoir alloué atomiquement (AVOIR-AAAA-NNNNNN)
+4. Facture d'origine retrouvée par session_id (si Mongo dispo)
+5. PDF avoir généré (A4, 38 KB)
+6. Email Resend au client avec PDF en pièce jointe + mention « remboursement en route sur votre moyen de paiement d'origine »
+7. Rapport renvoyé à l'admin UI avec statut
+
+---
+
+
+## 2026-10-30 (nuit, lot 2) — Slack test ping + Dashboard CSP admin + CI amélioré
+
+### ✅ Backend
+`POST /api/admin/slack-test-ping` (nouveau) : envoie un message de test au Slack configuré. Retourne `{ok, configured, reason}`. Fail-silent si webhook absente.
+
+### ✅ Frontend
+- `/admin/csp-reports` (nouvelle page) : dashboard des violations CSP, filtre par fenêtre (1h → 30j), 3 KPIs (total, groupes, seuil Slack), table agrégée avec sévérité colorée (vert / orange / rouge au seuil 50), état vide "aucune violation" en vert.
+- `/admin/payments-health` : bouton **Ping Slack** dans le header, bannière verte/rouge avec résultat ; lien **CSP reports** vers la nouvelle page.
+- `App.js` : route `/admin/csp-reports` lazy-loadée.
+
+### ✅ CI (.github/workflows/ci.yml)
+- Nouveau job **ESLint** sur le frontend (phase 1 : `continue-on-error: true`, rapport uniquement).
+- Build frontend passe désormais avec `SKIP_PRERENDER=1` (pas de Chrome en CI runner).
+- Nouveau job **audit-regression** : lance strictement `test_slack_notify.py` + `test_stuck_sessions_alert.py` + `test_invoice_counter.py` + `test_sitemap_deprecated_paths_filter.py`. Zéro échec toléré. `needs: [backend-tests]` → ne tourne que si pytest général passe.
+
+### 🧪 Vérifs
+- Backend démarre OK, endpoints `/api/admin/slack-test-ping` et `/api/admin/invoice-counter` retournent 401 sans auth (donc routing + auth OK).
+- Build frontend OK, aucune nouvelle erreur console sur /admin/csp-reports et /admin/payments-health (redirect clean vers /connexion).
+
+### 🗂️ Fichiers touchés
+- `backend/routes/admin_payments.py` (endpoint slack-test-ping)
+- `frontend/src/pages/AdminCspReports.jsx` (nouveau)
+- `frontend/src/pages/AdminPaymentsHealth.jsx` (bouton Ping Slack + lien CSP)
+- `frontend/src/App.js` (route /admin/csp-reports)
+- `.github/workflows/ci.yml` (ESLint + audit-regression + SKIP_PRERENDER)
+
+---
+
+
+## 2026-10-30 (nuit) — Admin Dashboard + Slack + CSP Reports
+
+### 🎯 Objectifs
+Compléter les tâches en file depuis la pause du 29/10 : bouton Rembourser Stripe dans l'admin, affichage du compteur facture séquentiel, alertes Slack sur sessions bloquées, endpoint de collecte des violations CSP.
+
+### ✅ Backend
+
+**services/slack_notify.py (nouveau)**
+Service générique de notification Slack via Incoming Webhook. Format Block Kit (header, section, fields, button). Fail-silent : si `SLACK_WEBHOOK_URL` absent ou webhook down, retourne False sans exception. Timeout 5s par défaut.
+
+**services/stuck_sessions_alert.py (modifié)**
+`check_once()` envoie désormais un ping Slack en plus de l'email Resend (cumul : email + Slack). Fail-silent : si Slack échoue, l'email reste la source de vérité. Dédup par `session_id` partagée avec l'email.
+
+**routes/admin_payments.py (ajout `GET /api/admin/invoice-counter`)**
+Expose le compteur de facture séquentiel annuel :
+- `year`, `last_seq`, `last_number` (FACT-AAAA-NNNNNN)
+- `next_number` (prochain à attribuer)
+- `backend` : 'mongo' ou 'fallback'
+
+**routes/csp_reports.py (nouveau)**
+- `POST /api/csp-reports` : ingestion publique des violations CSP (navigateur). Parse les 2 formats (legacy `csp-report` + Reporting API `body`). Stocke dans Mongo `csp_reports`.
+- `GET /api/admin/csp-reports?hours=24` : agrégation admin par (directive, blocked_uri)
+- Dédup Slack in-memory : au-delà de `CSP_SLACK_THRESHOLD=50` violations identiques dans 24h, ping Slack UNE fois par (directive, blocked_uri) et par cycle de vie du pod
+
+**deploy/nginx-frontend.conf**
+Ajout de `report-uri /api/csp-reports` et `Reporting-Endpoints: csp-endpoint` dans la CSP Report-Only → les navigateurs POSTent les violations à notre endpoint.
+
+### ✅ Frontend
+
+**pages/AdminPaymentsHealth.jsx**
+- Banner `Compteur facture {year}` : affiche FACT-AAAA-NNNNNN courant + prochain, badge backend (mongo/fallback)
+- Nouvelle section `Remboursement Stripe one-shot` avec sous-composant `RefundFinder` :
+  - Recherche par montant (défaut 24 €, fenêtre 7-90 j) via `GET /api/admin/stripe-refund/find-test-payments`
+  - Table résultats avec bouton `Rembourser` par ligne (ou badge "déjà remboursé")
+  - 2 étapes : dry-run → confirmation détaillée → refund réel
+- Rapport refund affiché en bannière (vert/rouge) avec refund_id, amount, status
+- Icônes Receipt + Undo2 depuis lucide-react
+
+### 🧪 Tests
+- `tests/test_slack_notify.py` (nouveau, 6 tests) : is_configured, fail-silent sans webhook, success 200, timeout, non-2xx
+- `tests/test_stuck_sessions_alert.py` (13 tests existants) : tous passent avec l'import Slack ajouté
+- `tests/test_invoice_counter.py` (6 tests existants) : passent
+- Allocation réelle testée en local : premier `FACT-2026-000001` attribué ✓
+- Endpoints HTTP vérifiés : `POST /api/csp-reports` → `{ok:true, count:1}`, `GET /api/admin/invoice-counter` → 401 sans auth
+
+### 🗂️ Fichiers touchés (ce lot)
+- `backend/services/slack_notify.py` (nouveau)
+- `backend/services/stuck_sessions_alert.py` (modifié)
+- `backend/routes/admin_payments.py` (ajout invoice-counter)
+- `backend/routes/csp_reports.py` (nouveau)
+- `backend/server.py` (wire csp_reports router)
+- `backend/tests/test_slack_notify.py` (nouveau)
+- `frontend/src/pages/AdminPaymentsHealth.jsx` (invoice counter + refund finder)
+- `deploy/nginx-frontend.conf` (report-uri CSP)
+
+### 📋 Env vars
+- `SLACK_WEBHOOK_URL` (backend, requis pour pings) — collecté via secrets_request
+- `CSP_SLACK_THRESHOLD` (défaut 50) — nb violations identiques /24h avant Slack
+- `CSP_SLACK_WINDOW_H` (défaut 24) — fenêtre d'agrégation
+
+---
+
+
+## 2026-10-30 (soir) — Code Splitting + SEO Lot 2 pré-rendu statique
+
+### 🎯 Objectifs
+Suite de l'audit Nao : attaquer les 2 gros manques structurels — bundle initial trop lourd (579 KB gzip) et aucun HTML pré-rendu pour Google.
+
+### ✅ Code Splitting (bundle initial -66 %)
+- `App.js` : 90+ imports de pages convertis en `React.lazy(() => import(...))`
+- Seules `HomeExperienceV3` (99 % des landings) et `NotFound` (catch-all) restent eager
+- `<Routes>` wrappé dans `<React.Suspense>` avec fallback accessible "Chargement…"
+- **Résultat mesuré** : `main.js` passe de **579 KB → 191 KB gzip** (-66 %)
+- 90+ chunks créés, chargés à la demande selon la route
+
+### ✅ SEO Lot 2 — Pré-rendu statique Puppeteer
+- `scripts/prerender_frontend.js` : script Node qui démarre un serveur statique local, visite les 46 routes de VALID_ROUTES avec Chromium headless, et écrit le HTML pré-rendu dans `build/<route>/index.html`
+- `frontend/package.json` : hook `postbuild` → le pré-rendu s'exécute automatiquement après `yarn build`
+- `src/index.js` : bascule `ReactDOM.createRoot().render()` → `ReactDOM.hydrateRoot()` quand le DOM est pré-rempli (évite double-render)
+- `deploy/nginx-frontend.conf` : chaque route sert son HTML pré-rendu si présent, fallback SPA sinon
+- **Résultat mesuré** : `index.html` passe de **9.9 KB vide → 112 KB avec H1, canonical, meta, contenu complet**. Toutes les 46 routes ont leur propre HTML sémantique (H1 personnalisé, canonical correcte, meta description).
+
+### ✅ Bug hydratation React 19 — `<a>` imbriqué
+- `components/ExploreUniversSection.jsx` : 2 cartes transformées en `<article>` + stretched Link overlay + PreviewLink sibling positionné (z-index 2)
+- Supprime le warning "In HTML, <a> cannot be a descendant of <a>" qui aurait causé un flash d'hydratation en prod
+
+### 📸 Preuves (preview)
+- Pre-render : 46/46 routes réussies, aucune en échec
+- Smoke test sur 8 routes clés (/, /cercle-solena, /contact, /notre-cadre, /services/tarot/amour, /services/rituel, /bibliotheque, /services/tarot/croix-celtique) : 0 erreur JS, 0 erreur hydratation, 3 cartes de la section Explore rendues
+
+### 🗂️ Fichiers touchés (ce lot)
+- `frontend/src/App.js` (code splitting + Suspense)
+- `frontend/src/index.js` (hydrateRoot)
+- `frontend/src/components/ExploreUniversSection.jsx` (fix nested <a>)
+- `frontend/package.json` (hook postbuild)
+- `scripts/prerender_frontend.js` (nouveau)
+- `deploy/nginx-frontend.conf` (routes servent pré-rendu)
+
+### ⚠️ Note production
+Le pré-rendu nécessite Chromium disponible dans l'environnement de build. Si absent, le script skip gracieusement (`|| true`) et le site retombe en SPA classique. L'env preview dispose de `/usr/bin/google-chrome`.
+
+---
+
+
+## 2026-10-30 — Audit qualité Nao : P0+P1+P2 appliqués
+
+### 🎯 Objectif
+Fix immédiat du crash JS prod qui cassait 5 pages (dont /cercle-solena = 19€/mois), + nettoyage SEO complet (sitemap, canoniques, tutoiement, a11y, headers).
+
+### ✅ P0-1 — Crash JS SEO component (5 pages réparées)
+- `frontend/src/components/SEO.js` : `safePath` fallback `window.location.pathname` quand `path` undefined
+- Ajout prop `path` explicite sur `/cercle-solena`, `/bibliotheque`, `/services/tarot/amour`, `/services/tarot/croix-celtique`, `/services/rituel`
+
+### ✅ P1-2 — Sitemap nettoyé (65 → 55 URLs canoniques)
+- Retirés : `/theme-natal-pdf`, `/communaute`, `/experience`, `/edition-reliee`, `/services/theme-natal`, `/services/numerologie`, `/services/archetype`, `/services/consultation`, `/services/astrosexo`, `/services/tarot/oui-non`
+- `frontend/src/config/seoRoutes.js` : VALID_ROUTES, REDIRECT_MAP, EXCLUDED_FROM_SITEMAP mis à jour
+
+### ✅ P1-3 — Tarot oui/non URL unique
+- Canonique : `/tarot-oui-non` (self-referencing)
+- 301 nginx : `/services/tarot/oui-non` → `/tarot-oui-non`
+- Boucle canonique/redirect éliminée
+
+### ✅ P1-4 — Canoniques explicites ajoutées
+- Entrées SEO_DATA pour `/contact` et `/notre-cadre`
+- `<SEO path="…" />` ajouté sur Contact.js, NotreCadre.js, RevolutionSolaire.js, LoveLanguages.js
+
+### ✅ P1-5 — Blog `/blog?post=slug` → `/blog/slug`
+- `pages/Blog.js` : MutationObserver qui réécrit à la volée les hrefs du widget Soro embarqué
+
+### ✅ P1-6 — Formulaire Thème Natal accessibilité
+- `pages/ThemeNatalOneshot.js` : `htmlFor`/`id`, `name`, `autoComplete="email"|"given-name"|"bday"|"address-level2"` sur les 5 champs
+
+### ✅ P1-7 — Tutoiement uniforme accueil
+- Title accueil : « éclairer tes choix »
+- `HomeExperienceV3.jsx` : « Choisis ton éclairage »
+- `AstralBookEditorial.jsx` : « Ta naissance / Ta lecture / Ton chemin »
+- `NavbarV2.js` : phrases services au tutoiement
+
+### ✅ P2-8 — Menu burger a11y + skip link
+- `NavbarV2.js` : `aria-expanded`, `aria-controls`, `role="dialog"`, `aria-modal`, fermeture Échap, retour focus au bouton
+- `App.js` + `App.css` : lien d'évitement RGAA 12.7 « Aller au contenu »
+- `<main id="main-content" tabIndex="-1">` wrap tout le routing
+
+### ✅ P2-9 — En-têtes HTTP sécurité
+- `deploy/nginx-frontend.conf` : `X-Frame-Options: DENY`, `Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()`, `Content-Security-Policy-Report-Only` (phase 1 observation)
+
+### 📸 Preuves (preview env)
+- /cercle-solena : status PASS, H1 « Un rendez-vous mensuel avec ton étoile », canonical OK, 0 page errors
+- /services/tarot/amour, /services/tarot/croix-celtique, /bibliotheque, /services/rituel : 0 erreur JS
+- /contact, /notre-cadre : canonical explicite présent
+- Accueil : H1 « Mieux te comprendre. Savoir ce que tu veux. Choisir ta direction. » (tutoiement)
+- Sitemap : 55 URLs canoniques, aucune des 10 URLs retirées n'y figure
+
+### 🗂️ Fichiers touchés
+- `frontend/src/components/SEO.js`
+- `frontend/src/components/NavbarV2.js`
+- `frontend/src/components/AstralBookEditorial.jsx`
+- `frontend/src/config/seoRoutes.js`
+- `frontend/src/pages/CercleSolena.js`
+- `frontend/src/pages/Bibliotheque.js`
+- `frontend/src/pages/TarotAmour.js`
+- `frontend/src/pages/TarotCroixCeltique.js`
+- `frontend/src/pages/MonRituel.js`
+- `frontend/src/pages/Contact.js`
+- `frontend/src/pages/NotreCadre.js`
+- `frontend/src/pages/RevolutionSolaire.js`
+- `frontend/src/pages/LoveLanguages.js`
+- `frontend/src/pages/ThemeNatalOneshot.js`
+- `frontend/src/pages/HomeExperienceV3.jsx`
+- `frontend/src/pages/Blog.js`
+- `frontend/src/App.js`
+- `frontend/src/App.css`
+- `deploy/nginx-frontend.conf`
+- `frontend/public/sitemap.xml` (régénéré)
+- `backend/tests/_gen_sample_natal_manuscript.py` (sample PDF production)
+
+### ⏭️ Reste à faire
+- Validation visuelle du PDF manuscrit production (URL fournie)
+- SEO Lot 2 pré-rendu (react-snap / Puppeteer) — P0 selon audit, nécessite build setup
+- Audit retest des 65 URLs après déploiement production
+
+---
+
+
+## 2026-02-29 — Compteur facture séquentiel FR + Alertes stuck sessions + Endpoint refund API
+
+### 🎯 Objectifs
+Lever le dernier risque comptable sur les factures PDF Stripe, surveiller proactivement les sessions bloquées > 1h, et pouvoir rembourser depuis le backend.
+
+### ✅ Compteur facture `FACT-AAAA-NNNNNN` (strictement croissant, reset annuel)
+- Nouveau service `services/invoice_counter.py` — compteur Mongo atomique via `find_one_and_update $inc + upsert`.
+- Collections : `invoice_counters` (par année) + `invoice_numbers` (mapping `session_id → number`, unique index).
+- Idempotent sur replay webhook : même `session_id` ⇒ même numéro (jamais de double facture).
+- Format : `FACT-2026-000001`, zéro-paddé 6 chiffres, conforme à l'exigence comptable française.
+- Fallback automatique sur l'ancien format `AAMM-XXXX` si Mongo indisponible → livraison jamais bloquée.
+- Branché dans `services/invoice_delivery.py` AVANT la génération du PDF.
+- 6 tests pytest (`tests/test_invoice_counter.py`) : alloc monotone, idempotence replay, reset annuel, fallback.
+
+### ✅ Alerte email admin : sessions Stripe bloquées > 1h
+- Nouveau service `services/stuck_sessions_alert.py` — boucle background toutes les 15 min.
+- Scan `payment_transactions` sur 72h, filtre `initiated/unpaid` plus vieux que `STUCK_ALERT_THRESHOLD_MIN=60`.
+- Déduplication par `session_id`, exclusion emails de test (contact@, admin@, test@, @plume-astrale.fr, @example.*, @test.*, +test, +debug).
+- Si une ligne `paid` existe pour la même session dans la fenêtre → considérée résolue, pas d'alerte.
+- Set in-memory `_alerted` évite les re-alertes jusqu'au prochain restart du pod.
+- Email HTML groupé avec table (session_id, email, pack, montant, âge) envoyé via Resend à `ADMIN_ALERT_EMAIL`.
+- Enregistrement dans la liste des loops dans `server.py` (après warmup 90s).
+- 7 tests pytest (`tests/test_stuck_sessions_alert.py`) : seuil 1h, filtres email, dédup, e2e send_email mock.
+
+### ✅ Remboursement API Stripe depuis le backend
+- Nouveau endpoint `POST /api/admin/stripe-refund` (`routes/admin_payments.py`), auth admin.
+- Entrée : `{session_id | payment_intent, reason, dry_run, note}` — `dry_run=true` par défaut.
+- Résout `session_id → payment_intent` via Stripe, retrouve le charge, vérifie `already_refunded`.
+- Exécute `stripe.Refund.create(payment_intent=..., reason=...)` et renvoie `refund_id + amount_refunded`.
+- Marque `payment_transactions.metadata.refunded_at` + `refund_reason` + `refund_id` pour cohérence avec `refund_alert_loop`.
+- Endpoint helper `GET /api/admin/stripe-refund/find-test-payments?amount_eur=24&days=30` pour retrouver la session à rembourser quand on n'a que « j'ai testé 24 € ».
+- Protégé par `require_admin` (JWT admin).
+
+### Résultat
+- 37/37 tests pytest verts (invoice_counter + stuck_sessions_alert + existing invoice_pdf + payments_health).
+- Backend démarre OK (service `/api/health` 200).
+- Endpoint `/api/admin/stripe-refund` répond 401 Authentication required (routing OK).
+
+
 # CHANGELOG - Plume Astrale
 
 ## 2026-02 (fork) — Refacto admin.py + Pool Mongo singleton + tests régression

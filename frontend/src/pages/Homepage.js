@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Sparkles, BookOpen, Compass, Heart,
-  Star, ShieldCheck, Clock, Mail,
+  ArrowRight, BookOpen, Compass, Heart,
 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { ctaClick } from '@/lib/analytics';
@@ -24,7 +23,6 @@ import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
 import NocturneFAQ from '@/components/nocturne/NocturneFAQ';
 import NocturneDailyArticle from '@/components/nocturne/NocturneDailyArticle';
 import CinematicBookShowcase from '@/components/nocturne/CinematicBookShowcase';
-import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
 
 /**

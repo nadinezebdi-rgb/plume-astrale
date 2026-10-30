@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import axios from 'axios';
 import { Loader2, Check, X } from 'lucide-react';
 import { getCartPromo } from '@/lib/cartPromo';
@@ -66,7 +66,7 @@ export default function PromoCodeField({ price, product, testIdBase = 'promo', o
           code: c,
         });
       }
-    } catch (e) {
+    } catch (_e) {
       updateState({
         status: 'ko',
         message: 'Impossible de valider le code (connexion).',

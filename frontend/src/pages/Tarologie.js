@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag, Heart, Briefcase, Coins, LogIn, ArrowRight, BookOpen } from 'lucide-react';
+import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag, Heart, Briefcase, Coins, BookOpen } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
@@ -68,7 +68,7 @@ const CrossCard = ({ item, index, isLocked, onPurchase }) => {
 
 const Tarologie = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
+  const { isAuthenticated, token, refreshBalance } = useAuth();
   const [prenom, setPrenom] = useState('');
   const [dateNaissance, setDateNaissance] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,7 +92,7 @@ const Tarologie = () => {
         const parsed = JSON.parse(data);
         if (parsed.prenom) setPrenom(parsed.prenom);
         if (parsed.dateNaissance) setDateNaissance(parsed.dateNaissance);
-      } catch (e) { /* ignore */ }
+      } catch (_e) { /* ignore */ }
     }
     const paid = localStorage.getItem('plume_tarologie_paid');
     if (paid === 'true') setHasPaid(true);
@@ -106,7 +106,7 @@ const Tarologie = () => {
       const res = await fetch(`${API_URL}/api/tarot/predictions`);
       const data = await res.json();
       if (data.success) setPredictions(data.predictions);
-    } catch (e) { /* silent fail */ }
+    } catch (_e) { /* silent fail */ }
     setPredLoading(false);
   };
 
@@ -173,7 +173,7 @@ const Tarologie = () => {
       } else {
         setPromoError(data.message || 'Code invalide');
       }
-    } catch (e) {
+    } catch (_e) {
       setPromoError('Erreur de connexion');
     }
     setPromoLoading(false);

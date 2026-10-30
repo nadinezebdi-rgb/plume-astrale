@@ -76,9 +76,6 @@ const MERCHANT_RETURN_POLICY = {
   returnMethod: 'https://schema.org/ReturnByMail',
   returnFees: 'https://schema.org/FreeReturn',
 };
-
-const PRODUCT_REVIEWS_FALLBACK = [];
-
 const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
@@ -368,6 +365,18 @@ const SEO_DATA = {
     keywords: 'éthique astrologie, guidance responsable, charte plume astrale',
   },
 
+  // AUDIT P1-4 (2026-10-30 · Nao) : canoniques explicites pour pages publiques
+  '/contact': {
+    title: 'Contact · Écris à Soléna · Plume Astrale',
+    description: "Une question, un retour, un besoin d'ajustement ? Soléna te répond sous 24-48h. Formulaire + email + Instagram.",
+    keywords: 'contact plume astrale, écrire à soléna, astrologie contact',
+  },
+  '/notre-cadre': {
+    title: 'Notre cadre · Plume Astrale',
+    description: "Comment Soléna travaille : calculs rigoureux, lecture symbolique, respect de ta liberté. Ce que Plume Astrale fait et ne fait pas.",
+    keywords: 'cadre astrologie, éthique, charte plume astrale',
+  },
+
   /* ─── Comptes utilisateur (noindex, mais SEO propre pour aperçu) ─── */
   '/connexion': {
     title: 'Connexion · Plume Astrale',
@@ -467,10 +476,17 @@ function replaceJsonLd(schemas) {
 }
 
 const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp, canonical: canonicalOverride }) => {
-  const data = SEO_DATA[path] || SEO_DATA['/'];
+  // AUDIT P0 (2026-10-30 · Nao) : path undefined faisait planter 5 pages
+  // (/cercle-solena, /bibliotheque, /services/tarot/amour, /services/tarot/croix-celtique,
+  // /services/rituel) avec TypeError: Cannot read properties of undefined (reading 'split').
+  // Fallback : window.location.pathname puis '/' en SSR.
+  const safePath = (typeof path === 'string' && path.length > 0)
+    ? path
+    : (typeof window !== 'undefined' ? window.location.pathname : '/');
+  const data = SEO_DATA[safePath] || SEO_DATA['/'];
   // SEO P0 (2026-02-16) : canonical toujours strip des query params (ex: ?theme=…)
   // pour éviter les doublons d'indexation. Le path arrivant ici est déjà décoré côté route.
-  const cleanPath = (path === '/' ? '' : path).split('?')[0].split('#')[0];
+  const cleanPath = (safePath === '/' ? '' : safePath).split('?')[0].split('#')[0];
   // SEO P0 Feb 2026 (bug audit) : si l'entrée SEO_DATA déclare `canonicalPath`,
   // on route la canonical vers cette autre URL — utile pour les doublons
   // d'intention (ex. /compatibilite-amoureuse → /services/compatibilite).
@@ -568,7 +584,7 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp, ca
 
     // JSON-LD dynamiques (remplace les précédents dynamic; garde les statiques d'index.html)
     replaceJsonLd(schemas);
-  }, [path, pageTitle, pageDesc, pageImage, canonical, data, jsonLd, shouldNoindex, liveReviews]);
+  }, [safePath, pageTitle, pageDesc, pageImage, canonical, data, jsonLd, shouldNoindex, liveReviews]);
 
   return null;
 };

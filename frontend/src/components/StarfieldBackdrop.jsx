@@ -12,8 +12,7 @@
  *   • fade     (default 0.55) — opacité max des twinkles
  *   • speed    (default 0.06) — vitesse de dérive (px/frame @ 60fps)
  */
-import React, { useEffect, useRef } from 'react';
-
+import {useEffect, useRef} from 'react';
 export default function StarfieldBackdrop({
   density = 80,
   color = '244, 239, 230',

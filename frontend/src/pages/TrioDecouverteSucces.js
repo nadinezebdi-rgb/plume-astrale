@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Sun, Star, Moon, Loader2, Mail, Download } from 'lucide-react';
 import axios from 'axios';
@@ -24,7 +24,7 @@ const TrioDecouverteSucces = () => {
       const r = await axios.get(`${API}/api/trio-decouverte/status?session_id=${sessionId}`);
       setStatus(r.data || { children: [] });
       if (r.data?.all_ready) setPolling(false);
-    } catch (e) { /* silent */ }
+    } catch (_e) { /* silent */ }
   }, [sessionId]);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ const TrioDecouverteSucces = () => {
             Ton <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Trio</em> se compose
           </h1>
           <p className="mt-4" style={{ color: 'rgba(227,215,255,0.75)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
-            Trois portraits sacrés sont en cours de rédaction — livraison par email dans quelques minutes.
+            Trois portraits sacrés sont en cours de rédaction — livraison par email sous 15 minutes.
           </p>
         </div>
 

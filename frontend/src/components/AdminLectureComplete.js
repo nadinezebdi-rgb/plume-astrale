@@ -253,7 +253,7 @@ export default function AdminLectureComplete({ token }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setAbStats(r.data);
-    } catch (e) {
+    } catch (_e) {
       // silent, garde les anciens stats
     } finally {
       setCtrLoading(false);

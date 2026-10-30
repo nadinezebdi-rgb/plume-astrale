@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useMemo, useState } from 'react';
-
+import {useEffect, useRef, useMemo, useState} from 'react';
 /**
  * CelestialBackdrop — étoiles scintillantes + étoiles filantes.
  * Empile en fond absolute derrière les sections navy.

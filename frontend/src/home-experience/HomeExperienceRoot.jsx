@@ -15,7 +15,7 @@
  * les actes V-VIII (Univers services, Personnalisation, Conversion,
  * Rassurance). Voir /app/memory/PRD.md → "Master Homepage Experience".
  */
-import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import {lazy, Suspense, useCallback, useEffect, useState} from 'react';
 import ExperienceRoot from '@/experience/ExperienceRoot';
 import { useExperienceStore } from '@/experience/useExperienceStore';
 import { event as trackEvent } from '@/lib/analytics';

@@ -6,8 +6,8 @@
  * Montage : conditionnel dans AuthenticatedHome.js (si ?welcome=1).
  * Style : cohérent avec le prototype /experience (noir, or, ivoire).
  */
-import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import {useEffect} from 'react';
+import { useNavigate } from 'react-router-dom';
 import { INTENT_CONFIG, readIntent } from './intentConfig';
 import { zodiacByKey } from './zodiacUtils';
 import { event as trackEvent, ctaClick } from '@/lib/analytics';

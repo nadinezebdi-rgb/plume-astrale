@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Moon, Heart, Calendar, BookOpen, Shield, ArrowRight } from 'lucide-react';
 import { asset } from '../lib/assets';

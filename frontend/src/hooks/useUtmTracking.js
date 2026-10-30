@@ -25,7 +25,7 @@ function readCurrent() {
     found.landing_path = window.location.pathname + window.location.search;
     found.landing_ts = new Date().toISOString();
     return found;
-  } catch (e) {
+  } catch (_e) {
     return {};
   }
 }
@@ -46,14 +46,14 @@ export default function useUtmTracking() {
           sessionStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
         }
       }
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
   }, []);
 
   return useMemo(() => {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : {};
-    } catch (e) {
+    } catch (_e) {
       return {};
     }
   }, []);

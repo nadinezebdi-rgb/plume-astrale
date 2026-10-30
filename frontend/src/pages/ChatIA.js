@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import {useState, useRef, useEffect, useCallback} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Send, Loader2, Sparkles, Trash2, Coins, LogIn, ShoppingBag, HelpCircle } from 'lucide-react';
+import { Send, Sparkles, Trash2, Coins, LogIn, ShoppingBag, HelpCircle } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import SEOServiceEnrich from '@/components/SEOServiceEnrich';
@@ -111,11 +111,11 @@ const ChatIA = () => {
     let sid = null;
     try {
       sid = localStorage.getItem(SESSION_KEY);
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
     const isNew = !sid;
     if (!sid) {
       sid = `plume-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      try { localStorage.setItem(SESSION_KEY, sid); } catch (e) { /* ignore */ }
+      try { localStorage.setItem(SESSION_KEY, sid); } catch (_e) { /* ignore */ }
     }
     setSessionId(sid);
 
@@ -131,7 +131,7 @@ const ChatIA = () => {
             // Remplace le message de bienvenue par l'historique complet
             setMessages(hist.map(m => ({ role: m.role, content: m.content })));
           }
-        } catch (e) { /* silence : session neuve OK */ }
+        } catch (_e) { /* silence : session neuve OK */ }
       })();
     }
   }, [token]);
@@ -153,7 +153,7 @@ const ChatIA = () => {
         localStorage.removeItem('pa_chat_seed');
         setTimeout(() => inputRef.current?.focus(), 200);
       }
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
   }, []);
 
   const scrollToBottom = useCallback(() => {
@@ -219,7 +219,7 @@ const ChatIA = () => {
         if (data.longitude) lon = String(data.longitude);
         if (data.lieuNaissance) place = data.lieuNaissance;
       }
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
 
     return {
       name, day, month, year, hour, min: minute,
@@ -269,7 +269,7 @@ const ChatIA = () => {
             { headers: { Authorization: `Bearer ${token}` } }
           );
           await refreshBalance();
-        } catch (e) {
+        } catch (_e) {
           setMessages(prev => [...prev, { role: 'assistant', content: "Impossible de deduire les credits. Reessaie." }]);
           setLoading(false);
           return;
@@ -296,7 +296,7 @@ const ChatIA = () => {
             v3Answer = r3.data.reply;
             if (r3.data.session_id && r3.data.session_id !== sessionId) {
               setSessionId(r3.data.session_id);
-              try { localStorage.setItem(SESSION_KEY, r3.data.session_id); } catch (e) { /* ignore */ }
+              try { localStorage.setItem(SESSION_KEY, r3.data.session_id); } catch (_e) { /* ignore */ }
             }
           }
         } catch (e) {
@@ -325,7 +325,7 @@ const ChatIA = () => {
           onSessionId: (sid) => {
             if (sid && sid !== sessionId) {
               setSessionId(sid);
-              try { localStorage.setItem(SESSION_KEY, sid); } catch (e) { /* ignore */ }
+              try { localStorage.setItem(SESSION_KEY, sid); } catch (_e) { /* ignore */ }
             }
           },
           onDelta: (delta) => {
@@ -372,7 +372,7 @@ const ChatIA = () => {
           ]);
         }
       }
-    } catch (e) {
+    } catch (_e) {
       setMessages(prev => [
         ...prev,
         { role: 'assistant', content: "Une perturbation cosmique empeche la connexion. Verifie ta connexion et reessaie." },
@@ -400,7 +400,7 @@ const ChatIA = () => {
     // Nouvelle session pour repartir de zero
     const newSid = `plume-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     setSessionId(newSid);
-    try { localStorage.setItem(SESSION_KEY, newSid); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(SESSION_KEY, newSid); } catch (_e) { /* ignore */ }
   };
 
   // Quotas restants

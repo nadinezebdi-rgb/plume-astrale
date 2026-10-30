@@ -10,7 +10,7 @@
  *
  * URL : /mon-compte/mon-livre?session_id=…
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
@@ -77,7 +77,7 @@ export default function MonLivrePage() {
       const gain = ctx.createGain(); gain.gain.value = 0.5;
       src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
       src.start(now); src.stop(now + 0.2);
-    } catch (e) {
+    } catch (_e) {
       // Silent fail — no audio available
     }
   }, []);

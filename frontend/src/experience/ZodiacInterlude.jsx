@@ -7,7 +7,7 @@
  * Skippable ("Passer") à tout moment.
  * Persiste le signe en sessionStorage `exp_zodiac` pour WelcomeSplash.
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import { computeZodiac, ZODIAC_STARS } from './zodiacUtils';
 import { event as trackEvent } from '@/lib/analytics';
 import FrenchDateInput from '@/components/FrenchDateInput';

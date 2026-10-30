@@ -59,7 +59,7 @@ def test_fr_titles_regression():
                                language='fr')
     titles = [c.title for c in m.chapters]
     print(titles)
-    for t in ['Comment lire ce livre', 'Le Ciel de Camille', 'Vos planètes', 'Vos douze maisons']:
+    for t in ['Comment lire ce livre', 'Le Ciel de Camille', 'Tes planètes', 'Tes douze maisons']:
         assert any(t.lower() in (x or '').lower() for x in titles), f'missing {t} in {titles}'
 
 

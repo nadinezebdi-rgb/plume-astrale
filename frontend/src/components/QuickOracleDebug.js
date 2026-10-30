@@ -2,11 +2,8 @@
  * QuickOracleDebug - Version avec logging exhaustif pour déboguer le CTA
  * Trace chaque étape du flux utilisateur
  */
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
-
-const API = process.env.REACT_APP_BACKEND_URL;
-
 const ZODIACS = [
   'Bélier', 'Taureau', 'Gémeaux', 'Cancer',
   'Lion', 'Vierge', 'Balance', 'Scorpion',
@@ -22,7 +19,7 @@ const log = (message, data = null) => {
     const logs = JSON.parse(localStorage.getItem('qo_logs') || '[]');
     logs.push({ msg: message, data, time: timestamp });
     localStorage.setItem('qo_logs', JSON.stringify(logs.slice(-50))); // Keep last 50
-  } catch (e) { /* ignore */ }
+  } catch (_e) { /* ignore */ }
 };
 
 export default function QuickOracleDebug({ onClose, onSelectPack }) {

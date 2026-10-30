@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * SalesTrustBlock — bloc de confiance F500 réutilisable.
  *

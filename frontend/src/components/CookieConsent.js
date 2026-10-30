@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Cookie, Shield, BarChart3, Target, ChevronDown } from 'lucide-react';
 import { getConsent, setConsent } from '@/lib/analytics';

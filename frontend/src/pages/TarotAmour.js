@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Heart, Loader2, ArrowLeft, ArrowRight, Coins } from 'lucide-react';
@@ -66,6 +66,7 @@ const TarotAmour = () => {
   return (
     <>
       <SEO
+        path="/services/tarot/amour"
         title="Tirage Amoureux — Tarot 3 cartes | Plume Astrale"
         description="Tirage 3 cartes spécial couple : Toi, L'Autre, Le Lien. Une lecture de compatibilité claire pour 3 crédits."
       />

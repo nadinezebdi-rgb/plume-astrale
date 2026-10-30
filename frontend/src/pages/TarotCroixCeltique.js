@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Sparkles, Loader2, ArrowLeft, ArrowRight, Coins, Download } from 'lucide-react';
@@ -91,7 +91,7 @@ const TarotCroixCeltique = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch (e) {
+    } catch (_e) {
       setError('Impossible de générer le PDF. Réessaie dans un instant.');
     } finally {
       setPdfLoading(false);
@@ -101,6 +101,7 @@ const TarotCroixCeltique = () => {
   return (
     <>
       <SEO
+        path="/services/tarot/croix-celtique"
         title="Croix Celtique — Tarot 10 cartes | Plume Astrale"
         description="Tirage traditionnel de la Croix Celtique. 10 cartes lues par Soléna pour les questions profondes."
       />

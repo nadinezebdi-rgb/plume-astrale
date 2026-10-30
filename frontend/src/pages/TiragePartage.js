@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Sparkles, Moon, Sun, ArrowRight, Eye, Heart, Share2, Download, Mail, Smartphone, Link2, Film } from 'lucide-react';
 import { asset } from '../lib/assets';

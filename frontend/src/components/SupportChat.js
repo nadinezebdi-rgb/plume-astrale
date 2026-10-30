@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import {useState, useRef, useEffect} from 'react';
 import axios from 'axios';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -235,7 +235,7 @@ export default function SupportChat() {
         session_id: r.data?.session_id,
         helpful: null,
       }]);
-    } catch (e) {
+    } catch (_e) {
       setMessages((cur) => [...cur, {
         role: 'assistant',
         content: "Je n'arrive pas à te répondre pour le moment. Écris-nous à contact@plume-astrale.fr, on te répond en quelques heures.",

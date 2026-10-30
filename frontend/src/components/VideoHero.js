@@ -1,5 +1,4 @@
-import React, { useRef, useEffect } from 'react';
-
+import {useRef, useEffect} from 'react';
 /**
  * Fond vidéo en boucle avec overlay + contenu — pour la homepage
  */

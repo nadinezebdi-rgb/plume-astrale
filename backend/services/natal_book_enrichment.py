@@ -451,3 +451,115 @@ async def enrich_ex_libris_only(
     except Exception as e:
         logger.warning(f'[ex_libris] cache write fail: {e}')
     return txt
+
+
+# ─── Ex Libris CITATION courte (60 mots) — GPT 6 Luna ────────────────────────
+#
+# Signature bibliophile de la page Ex-Libris (bandeau parchemin bas).
+# Format strict pour tenir sur ~6 lignes dans le bandeau crème : 55-65 mots.
+# Modèle : GPT 6 Luna (plus condensé, moins lyrique que GPT-5.4).
+
+EX_LIBRIS_CITATION_CACHE = Path(__file__).resolve().parent.parent / 'cache' / 'natal_ex_libris_citation'
+EX_LIBRIS_CITATION_CACHE.mkdir(parents=True, exist_ok=True)
+
+_EX_LIBRIS_CITATION_SYSTEM = (
+    "Tu composes une citation ex-libris pour un livre d'astrologie éditoriale "
+    "signé Plume Astrale. Prose littéraire française, voix intime, deuxième "
+    "personne du singulier (tu). Jamais moralisatrice, jamais new-age, pas "
+    "d'anglicismes, pas d'émojis. Pas de signature finale."
+)
+
+
+async def _call_gpt_luna(system_msg: str, user_msg: str, session_id: str,
+                          timeout_s: float = 45.0) -> Optional[str]:
+    """Appelle GPT 6 Luna via emergentintegrations (Universal Key)."""
+    import asyncio as _asyncio
+    import os as _os
+    api_key = _os.environ.get('EMERGENT_LLM_KEY', '').strip()
+    if not api_key:
+        logger.warning('[ex_libris_luna] EMERGENT_LLM_KEY manquante')
+        return None
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=session_id,
+            system_message=system_msg,
+        ).with_model('openai', 'gpt-6-luna')
+        return await _asyncio.wait_for(
+            chat.send_message(UserMessage(text=user_msg)),
+            timeout=timeout_s,
+        )
+    except _asyncio.TimeoutError:
+        logger.error(f'[ex_libris_luna] TIMEOUT après {timeout_s}s (session={session_id})')
+        return None
+    except Exception as e:
+        logger.exception(f'[ex_libris_luna] call failed: {e}')
+        return None
+
+
+def _ex_libris_citation_prompt(prenom: str, sun: str, moon: str, asc: str) -> str:
+    return (
+        f"Compose la citation ex-libris de {prenom or 'cette personne'}.\n"
+        f"Trio : Soleil {sun or '—'}, Lune {moon or '—'}, Ascendant {asc or '—'}.\n\n"
+        "Contraintes STRICTES :\n"
+        "- Longueur : entre 55 et 65 mots exactement (vise 60).\n"
+        "- UN SEUL paragraphe, prose fluide, deuxième personne du singulier (tu).\n"
+        "- Évoque discrètement la couleur du trio sans nommer les signes "
+        "comme un diagnostic.\n"
+        "- Pas de guillemets, pas de titre, pas de signature, pas d'« en tant que ».\n"
+        "- Finit sur une image concrète ou un verbe qui ouvre vers l'avenir.\n\n"
+        "Réponds UNIQUEMENT par le paragraphe nu, rien d'autre."
+    )
+
+
+def _word_count(text: str) -> int:
+    return len(re.findall(r"\b[\wÀ-ÖØ-öø-ÿ'’-]+\b", text or ''))
+
+
+async def enrich_ex_libris_citation(
+    prenom: str,
+    birth_data: Dict[str, Any],
+    sun_sign_fr: str,
+    moon_sign_fr: str,
+    asc_sign_fr: str,
+    force_refresh: bool = False,
+) -> Optional[str]:
+    """Génère (ou lit en cache) la citation ex-libris de ~60 mots via GPT 6 Luna.
+
+    Retourne None si GPT ne répond pas → le caller doit utiliser un fallback
+    (citation static ou illustration seule).
+    """
+    key = _cache_key(prenom, birth_data) + '-luna60'
+    cache_file = EX_LIBRIS_CITATION_CACHE / f'{key}.txt'
+    if not force_refresh and cache_file.exists():
+        try:
+            txt = cache_file.read_text('utf-8').strip()
+            if txt:
+                logger.info(f'[ex_libris_citation] cache HIT {key}')
+                return txt
+        except Exception:
+            pass
+
+    prompt = _ex_libris_citation_prompt(prenom, sun_sign_fr, moon_sign_fr, asc_sign_fr)
+    resp = await _call_gpt_luna(
+        _EX_LIBRIS_CITATION_SYSTEM, prompt,
+        session_id=f'ex-libris-citation-{key}', timeout_s=45.0,
+    )
+    if not resp:
+        return None
+    txt = resp.strip()
+    txt = re.sub(r'^```[a-z]*\s*', '', txt, flags=re.IGNORECASE)
+    txt = re.sub(r'\s*```$', '', txt)
+    txt = txt.strip('"\u201c\u201d \n\t')
+    txt = re.sub(r'\s+', ' ', txt).strip()
+
+    wc = _word_count(txt)
+    if not (45 <= wc <= 80):
+        logger.warning(f'[ex_libris_citation] longueur hors-cible ({wc} mots) — on garde quand même')
+
+    try:
+        cache_file.write_text(txt, 'utf-8')
+    except Exception as e:
+        logger.warning(f'[ex_libris_citation] cache write fail: {e}')
+    return txt

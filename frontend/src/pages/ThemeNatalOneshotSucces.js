@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import {useEffect, useState, useCallback, useMemo} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Star, Moon, Sparkles, Zap, Hourglass } from 'lucide-react';
+import { CheckCircle2, Download, Loader2, Mail, Star, Moon, Sparkles, Zap, Hourglass } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import CercleSolenaInvite from '@/components/CercleSolenaInvite';
@@ -39,7 +39,7 @@ const ThemeNatalOneshotSucces = () => {
       // Arrête le polling dès qu'on atteint un état terminal (succès OU échec)
       if (r.data?.pdf_ready) setPolling(false);
       else if (r.data?.pdf_status === 'failed') setPolling(false);
-    } catch (e) {
+    } catch (_e) {
       /* silent */
     }
   }, [sessionId]);
@@ -147,7 +147,7 @@ const ThemeNatalOneshotSucces = () => {
             Ton <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Thème Natal</em> se compose
           </h1>
           <p className="mt-4" style={{ color: 'rgba(227,215,255,0.75)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
-            Soléna trace les 49 pages de ton portrait céleste. Livraison par email dans quelques minutes.
+            Plume Astrale trace les 49 pages de ton portrait céleste. Livraison par email sous 15 minutes.
           </p>
         </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import { Navigate } from 'react-router-dom';
 import { FileText, ExternalLink, Loader2, RefreshCw, User, Users, ShieldAlert, TrendingUp, Sparkles } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
@@ -41,7 +41,7 @@ export default function AdminPdfTest() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) setAnalytics(await res.json());
-    } catch (e) { /* silent */ }
+    } catch (_e) { /* silent */ }
   }, [backend, token]);
 
   useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
@@ -130,7 +130,7 @@ export default function AdminPdfTest() {
       }
       // Refresh analytics after successful gen
       fetchAnalytics();
-    } catch (e) {
+    } catch (_e) {
       setErrMsg("Erreur réseau. Vérifie ta connexion.");
     } finally {
       setTimeout(() => setLoading(null), 900);

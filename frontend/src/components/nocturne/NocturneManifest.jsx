@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * NocturneManifest — Manifeste éditorial (fond Papier Céleste).
  * Trois refus, trois inclinations — la promesse artistique.

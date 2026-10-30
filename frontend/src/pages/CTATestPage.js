@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import QuickOracleDebug from '../components/QuickOracleDebug';
 
 /**
@@ -21,7 +21,7 @@ export default function CTATestPage() {
       try {
         const qologs = JSON.parse(localStorage.getItem('qo_logs') || '[]');
         setLogs(qologs);
-      } catch (e) { /* ignore */ }
+      } catch (_e) { /* ignore */ }
     }, 500);
     return () => clearInterval(interval);
   }, []);

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import {useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, ArrowRight, Sparkles, Mail } from 'lucide-react';
 import SEO from '@/components/SEO';

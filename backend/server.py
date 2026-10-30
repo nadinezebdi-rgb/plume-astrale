@@ -52,6 +52,7 @@ from routes.admin_monitoring import router as admin_monitoring_router
 from routes.admin_viralite import router as admin_viralite_router
 from routes.admin_illustrations import router as admin_illustrations_router
 from routes.admin_payments import router as admin_payments_router
+from routes.csp_reports import router as csp_reports_router
 from routes.admin_book import router as admin_book_router
 from routes.experience_funnel import (
     funnel_router as experience_funnel_public_router,
@@ -141,6 +142,7 @@ api_router.include_router(admin_monitoring_router)
 api_router.include_router(admin_viralite_router)
 api_router.include_router(admin_illustrations_router)
 api_router.include_router(admin_payments_router)
+api_router.include_router(csp_reports_router)
 api_router.include_router(experience_funnel_public_router)
 api_router.include_router(experience_funnel_admin_router)
 api_router.include_router(experience_tarot_reveal_router)
@@ -1189,6 +1191,18 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
             await track_purchase_once(_sd.get('id'), _sd)
     except Exception as e:
         logger.warning(f'[capi_purchase] webhook hook fail: {e}')
+
+    # ─── Facture PDF FR automatique (SIRET + franchise TVA) ──────────────
+    # Envoyée à chaque paiement réussi, tous produits confondus, en PJ email.
+    # Idempotent via la table `invoices_sent`. Non bloquant : les erreurs
+    # d'envoi facture ne doivent jamais bloquer la livraison du produit.
+    try:
+        _sd = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+        if event_type == 'checkout.session.completed' and _sd.get('payment_status') == 'paid':
+            from services.invoice_delivery import send_invoice_for_session
+            await send_invoice_for_session(_sd)
+    except Exception as e:
+        logger.warning(f'[invoice_delivery] webhook hook fail: {e}')
 
     # ─── Route Cercle Soléna (abonnement 19€/mois) EN PREMIER ───────────────
     # Consume : customer.subscription.* + invoice.payment_succeeded (mensuel)
@@ -3716,7 +3730,7 @@ if ASSETS_DIR.exists():
     # des URLs de commandes voisines).
     # `synastrie_extracts` reste public (lead magnet, UUID 48 bits = token).
     for _pub in (
-        'library', 'fonts', 'synastrie_extracts', 'pdf_covers',
+        'library', 'fonts', 'synastrie_extracts', 'pdf_covers', 'theme_natal',
     ):
         _p = ASSETS_DIR / _pub
         # Créer le dossier s'il n'existe pas — nécessaire pour que le mount soit
@@ -4195,6 +4209,9 @@ async def _start_cart_recovery():
     # Journal hebdo vendredi 9h UTC + auto-lock variantes gagnantes
     from services.weekly_digest import weekly_digest_loop
     _asyncio.create_task(_delayed_start(weekly_digest_loop()))
+    # Alerte admin : sessions Stripe bloquées > 1h (scan toutes les 15 min)
+    from services.stuck_sessions_alert import stuck_sessions_alert_loop
+    _asyncio.create_task(_delayed_start(stuck_sessions_alert_loop()))
 
     # Prewarm des illustrations Nano Banana partagées (10 planètes + clôture).
     # Au premier démarrage de la prod le cache local est vide ; sans prewarm,

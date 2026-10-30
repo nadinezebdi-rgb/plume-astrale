@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Loader2, ShieldCheck } from 'lucide-react';
 import SEO from '@/components/SEO';

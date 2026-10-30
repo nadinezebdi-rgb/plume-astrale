@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, Plus } from 'lucide-react';
 import SEO from '@/components/SEO';
@@ -68,8 +67,8 @@ export default function HomeExperienceV3() {
     <>
       <SEO
         path="/"
-        title="Plume Astrale — Lectures et services pour éclairer vos choix"
-        description="Astrologie, tarot et guidances personnalisées pour mieux vous comprendre et prendre des décisions éclairées."
+        title="Plume Astrale — Lectures et services pour éclairer tes choix"
+        description="Astrologie, tarot et guidances personnalisées pour mieux te comprendre et prendre tes décisions en confiance."
         canonical="https://plume-astrale.fr/"
       />
       <script
@@ -89,7 +88,7 @@ export default function HomeExperienceV3() {
         >
           <header>
             <p className="home-gateway__eyebrow">À explorer</p>
-            <h2 id="home-gateway-services-title">Choisissez votre éclairage</h2>
+            <h2 id="home-gateway-services-title">Choisis ton éclairage</h2>
           </header>
           <div className="home-gateway__lists">
             <ServiceList title="Lectures personnalisées" items={LECTURES} testid="home-gateway-readings" />

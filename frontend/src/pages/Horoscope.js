@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import {useState, useEffect, useCallback, lazy, Suspense} from 'react';
 import PageHero from '@/components/PageHero';
 import PsPageShell from '@/components/PsPageShell';
 import { useNavigate } from 'react-router-dom';
@@ -95,7 +95,7 @@ const Horoscope = () => {
       if (data.success) {
         setApiData(data.data);
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn('Astrology API unavailable, using fallback data');
       setApiData(null);
     }
@@ -125,7 +125,7 @@ const Horoscope = () => {
       if (data.success) {
         setNatalData(data.data);
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn('Natal chart API unavailable');
     }
   }, []);

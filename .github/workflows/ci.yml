@@ -14,10 +14,21 @@ jobs:
   backend-tests:
     name: Backend · pytest
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+
+    services:
+      # MongoDB éphémère : certains tests unitaires (alert cooldown, tarot reveal)
+      # utilisent un vrai client Mongo sur localhost:27017.
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Lier /app au dépôt (chemins absolus hérités de l'environnement Emergent)
+        run: sudo ln -sfn "$GITHUB_WORKSPACE" /app
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -41,6 +52,8 @@ jobs:
           DB_NAME: plume_ci
           SUPABASE_URL: https://ci.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ci-fake-key
+          SUPABASE_ANON_KEY: ci-fake-key
+          SUPABASE_JWT_SECRET: ci-fake-jwt-secret-0123456789abcdef0123456789abcdef0123
           EMERGENT_LLM_KEY: ci-fake-key
           STRIPE_API_KEY: sk_test_ci
           STRIPE_ALLOW_TEST_MODE: 'true'
@@ -66,16 +79,82 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: frontend/yarn.lock
+          # Pas de cache yarn : le dépôt ne versionne pas de yarn.lock
+          # (même installation que Vercel : `yarn install` sans lockfile).
 
       - name: Install deps
         working-directory: frontend
-        run: yarn install --frozen-lockfile
+        run: yarn install --non-interactive --network-timeout 600000
 
-      - name: Build
+      - name: ESLint (strict sur errors, warnings tolérés < 100)
+        working-directory: frontend
+        # AUDIT phase 2 (2026-10-30 · Nao) : 0 erreur tolérée (bloquant).
+        # Lot 5 (soir) : cap 500 → 200 → 100 après 2 passes de nettoyage auto.
+        # 92 warnings restants, à descendre à chaque PR vers 0.
+        run: npx eslint "src/**/*.{js,jsx}" --max-warnings 100
+
+      - name: Build (SKIP_PRERENDER car pas de Chrome en CI)
         working-directory: frontend
         env:
           CI: 'false' # React warnings = warnings, pas errors
           REACT_APP_BACKEND_URL: https://plume-astrale.fr
+          SKIP_PRERENDER: '1'
         run: yarn build
+
+  # ─── AUDIT regression (2026-10-30 · Nao) ───
+  # Garde-fou dédié : les tests qui couvrent les correctifs de l'audit qualité
+  # (crash SEO P0-1, Slack alerts, invoice counter, CSP reports) doivent rester
+  # verts à chaque PR, sinon merge bloqué via branch protection côté GitHub.
+  audit-regression:
+    name: Audit regression · tests critiques
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [backend-tests]
+
+    services:
+      # MongoDB éphémère : certains tests unitaires (alert cooldown, tarot reveal)
+      # utilisent un vrai client Mongo sur localhost:27017.
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lier /app au dépôt (chemins absolus hérités de l'environnement Emergent)
+        run: sudo ln -sfn "$GITHUB_WORKSPACE" /app
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install deps
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Run audit tests (strict, aucun échec toléré)
+        working-directory: backend
+        env:
+          MONGO_URL: mongodb://localhost:27017
+          DB_NAME: plume_ci
+          SUPABASE_URL: https://ci.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ci-fake-key
+          SUPABASE_ANON_KEY: ci-fake-key
+          SUPABASE_JWT_SECRET: ci-fake-jwt-secret-0123456789abcdef0123456789abcdef0123
+          EMERGENT_LLM_KEY: ci-fake-key
+          STRIPE_API_KEY: sk_test_ci
+          STRIPE_ALLOW_TEST_MODE: 'true'
+          DISABLE_BACKGROUND_TASKS: 'true'
+        run: |
+          pytest \
+            tests/test_slack_notify.py \
+            tests/test_stuck_sessions_alert.py \
+            tests/test_invoice_counter.py \
+            tests/test_sitemap_deprecated_paths_filter.py \
+            -q --tb=short

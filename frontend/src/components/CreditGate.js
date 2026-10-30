@@ -18,7 +18,10 @@ import { Coins, LogIn, ArrowRight } from 'lucide-react';
  *   bypass     — if true, skip gate (e.g. free preview)
  */
 export default function CreditGate({ serviceId, cost, label, onUnlock, children, bypass }) {
-  const { isAuthenticated, creditBalance, useCredits } = useAuth();
+  // Note: `useCredits` est une méthode du context AuthProvider (pas un hook React),
+  // mais son nom déclenche la règle react-hooks/rules-of-hooks. On alias en
+  // `spendCredits` pour éviter la fausse alerte.
+  const { isAuthenticated, creditBalance, useCredits: spendCredits } = useAuth();
   const navigate = useNavigate();
   const [unlocked, setUnlocked] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
@@ -64,7 +67,7 @@ export default function CreditGate({ serviceId, cost, label, onUnlock, children,
     setLoading(true);
     setError('');
     try {
-      const result = await useCredits(serviceId);
+      const result = await spendCredits(serviceId);
       setUnlocked(true);
       if (onUnlock) onUnlock(result);
     } catch (err) {

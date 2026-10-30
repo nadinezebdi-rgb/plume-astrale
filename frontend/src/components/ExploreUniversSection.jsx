@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Sparkles, Heart, Sun, FileText } from 'lucide-react';
 import { event as trackEvent } from '../lib/analytics';
@@ -161,6 +161,7 @@ function PreviewLink({ href, label, event, testid }) {
       className="explore-univers__card-preview"
       onClick={onClick}
       data-testid={testid}
+      style={{ position: 'relative', zIndex: 2 }}
     >
       <FileText size={14} strokeWidth={1.6} aria-hidden="true" />
       <span>{label}</span>
@@ -196,11 +197,12 @@ export default function ExploreUniversSection() {
 
         <div className="explore-univers__grid">
           {/* Card 1 — Thème natal */}
-          <Link
-            to="/theme-natal"
-            className="explore-univers__card"
+          {/* AUDIT (2026-10-30 · Nao) : refacto <a> imbriqué en <article> + stretched-link overlay
+              pour supprimer le warning React 19 "hydration error: <a> in <a>". */}
+          <article
+            className="explore-univers__card explore-univers__card--linked"
             data-testid="explore-univers-card-theme-natal"
-            style={{ '--card-accent': '#D4AF37' }}
+            style={{ '--card-accent': '#D4AF37', position: 'relative' }}
           >
             <ConstellationDecor variant="natal" />
             <div className="explore-univers__card-head">
@@ -223,14 +225,19 @@ export default function ExploreUniversSection() {
                 testid="explore-univers-natal-preview"
               />
             </div>
-          </Link>
+            <Link
+              to="/theme-natal"
+              aria-label="Thème natal — découvrir"
+              className="explore-univers__card-stretched"
+              style={{ position: 'absolute', inset: 0, zIndex: 1, textIndent: '-9999px', overflow: 'hidden' }}
+            >Thème natal</Link>
+          </article>
 
           {/* Card 2 — Compatibilité amoureuse */}
-          <Link
-            to="/synastrie"
-            className="explore-univers__card"
+          <article
+            className="explore-univers__card explore-univers__card--linked"
             data-testid="explore-univers-card-synastrie"
-            style={{ '--card-accent': '#E8A5B9' }}
+            style={{ '--card-accent': '#E8A5B9', position: 'relative' }}
           >
             <ConstellationDecor variant="synastrie" />
             <div className="explore-univers__card-head">
@@ -253,7 +260,13 @@ export default function ExploreUniversSection() {
                 testid="explore-univers-synastrie-preview"
               />
             </div>
-          </Link>
+            <Link
+              to="/synastrie"
+              aria-label="Compatibilité amoureuse — découvrir"
+              className="explore-univers__card-stretched"
+              style={{ position: 'absolute', inset: 0, zIndex: 1, textIndent: '-9999px', overflow: 'hidden' }}
+            >Compatibilité amoureuse</Link>
+          </article>
 
           {/* Card 3 — Horoscope du jour (live widget) */}
           <Link

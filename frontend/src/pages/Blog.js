@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import {useEffect} from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
@@ -123,10 +123,34 @@ export default function Blog() {
     script.defer = true;
     document.body.appendChild(script);
 
+    // AUDIT P1-5 (2026-10-30 · Nao) : le widget Soro injecte des liens en
+    // /blog?post=slug (invisibles pour Google car URL paramétrée).
+    // Un MutationObserver réécrit tous les href `/blog?post=slug` en `/blog/slug`
+    // au fur et à mesure que le widget peuple sa liste.
+    const widget = document.getElementById('soro-blog');
+    let observer = null;
+    const rewriteBlogLinks = (root) => {
+      if (!root) return;
+      root.querySelectorAll('a[href*="/blog?post="], a[href*="blog?post="]').forEach((a) => {
+        const href = a.getAttribute('href') || '';
+        const match = href.match(/[?&]post=([^&#]+)/);
+        if (match) {
+          a.setAttribute('href', `/blog/${match[1]}`);
+          a.setAttribute('data-rewritten', 'seo-p1-5');
+        }
+      });
+    };
+    if (widget && typeof MutationObserver !== 'undefined') {
+      observer = new MutationObserver(() => rewriteBlogLinks(widget));
+      observer.observe(widget, { childList: true, subtree: true, attributes: true, attributeFilter: ['href'] });
+      rewriteBlogLinks(widget);
+    }
+
     return () => {
       document.title = prevTitle;
       if (script.parentNode) document.body.removeChild(script);
       if (ld.parentNode) document.head.removeChild(ld);
+      if (observer) observer.disconnect();
     };
   }, [knownSlug]);
 

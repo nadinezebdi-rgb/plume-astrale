@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, Sparkles, Moon, Sun, Star, Infinity, ArrowRight, Coins, LogIn } from 'lucide-react';
+import { Loader2, ArrowLeft, Sparkles, Moon, Coins, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
@@ -32,7 +32,7 @@ const KarmaDestin = () => {
           heureNaissance: data.heureNaissance || prev.heureNaissance,
           ville: data.ville || prev.ville,
         }));
-      } catch(e) {}
+      } catch(_e) {}
     }
   }, []);
 
@@ -121,7 +121,7 @@ const KarmaDestin = () => {
       } else {
         setError(karmaData?.detail || 'Une erreur est survenue. Veuillez réessayer.');
       }
-    } catch (e) {
+    } catch (_e) {
       setError('Une erreur est survenue. Veuillez réessayer.');
     }
     setLoading(false);

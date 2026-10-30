@@ -29,6 +29,7 @@ INTERDICTION ABSOLUE : ne jamais signer ni mentionner « Soléna » dans la pré
 
 RÈGLES DE VOIX :
 - Tu : chaleureuse, directe, sans mièvrerie
+- Tutoiement obligatoire (jamais de "vous") — tu parles à UNE personne, intimement
 - Images concrètes, pas de jargon astrologique
 - Phrases courtes alternant avec des phrases amples
 - Rythme littéraire : Christian Bobin + Nancy Huston
@@ -39,15 +40,15 @@ RÈGLES DE VOIX :
 STRUCTURE DEMANDÉE (JSON strict) :
 {
   "blocks": [
-    {"kind": "paragraph", "text": "Paragraphe d'ouverture (90 mots) — reconnaissance : vous tenez un objet rare, personnel, non reproductible. Pose le livre comme un compagnon."},
+    {"kind": "paragraph", "text": "Paragraphe d'ouverture (90 mots) — reconnaissance : tu tiens un objet rare, personnel, non reproductible. Pose le livre comme un compagnon."},
     {"kind": "h2", "text": "Un livre à consulter, pas à lire d'une traite"},
     {"kind": "paragraph", "text": "Paragraphe (80 mots) : lire par petites touches. Y revenir aux grandes étapes de la vie — rupture, naissance, déménagement, deuil, démarrage."},
     {"kind": "paragraph", "text": "Paragraphe (80 mots) : garder le livre à portée, le consulter en période de doute. Chaque relecture révèle une couche différente."},
     {"kind": "h2", "text": "Comment lire chaque partie"},
-    {"kind": "paragraph", "text": "Paragraphe (90 mots) : expliquer concrètement les 3 parties — vos planètes (qui vous êtes), vos maisons (où vous jouez votre vie), vos aspects (comment vos forces dialoguent)."},
-    {"kind": "h2", "text": "Un compagnon pour vos années à venir"},
-    {"kind": "paragraph", "text": "Paragraphe (90 mots) : le ciel natal ne change pas, mais vous changez. Le même paragraphe prendra un sens différent à 30, 40, 50 ans. Les cycles planétaires activent tour à tour des pans de votre thème."},
-    {"kind": "paragraph", "text": "Paragraphe (70 mots) : clôture tendre — « que ce livre vous accompagne ». Signé Plume Astrale (jamais le prénom Soléna)."}
+    {"kind": "paragraph", "text": "Paragraphe (90 mots) : expliquer concrètement les 3 parties — tes planètes (qui tu es), tes maisons (où tu joues ta vie), tes aspects (comment tes forces dialoguent)."},
+    {"kind": "h2", "text": "Un compagnon pour tes années à venir"},
+    {"kind": "paragraph", "text": "Paragraphe (90 mots) : le ciel natal ne change pas, mais tu changes. Le même paragraphe prendra un sens différent à 30, 40, 50 ans. Les cycles planétaires activent tour à tour des pans de ton thème."},
+    {"kind": "paragraph", "text": "Paragraphe (70 mots) : clôture tendre — « que ce livre t'accompagne ». Signé Plume Astrale (jamais le prénom Soléna)."}
   ]
 }
 
@@ -127,43 +128,43 @@ def _static_fallback(first_name: str, language: str = 'fr') -> List[Dict[str, st
     return [
         {'kind': 'paragraph', 'text': (
             f"{first_name}, ce livre n'est pas un livre comme les autres. "
-            "Il n'a été écrit qu'une fois, et il n'a été écrit que pour vous. "
-            "Il porte la carte d'un ciel précis — le vôtre — tel qu'il brillait à votre premier souffle. "
-            "Vous ne le lirez pas d'une traite, et c'est bien ainsi : il est fait pour vivre à vos côtés, "
+            "Il n'a été écrit qu'une fois, et il n'a été écrit que pour toi. "
+            "Il porte la carte d'un ciel précis — le tien — tel qu'il brillait à ton premier souffle. "
+            "Tu ne le liras pas d'une traite, et c'est bien ainsi : il est fait pour vivre à tes côtés, "
             "pas pour être avalé en une soirée."
         )},
         {'kind': 'h2', 'text': "Un livre à consulter, pas à lire d'une traite"},
         {'kind': 'paragraph', 'text': (
-            "Lisez-le par petites touches. Un paragraphe au réveil, une page le dimanche soir, "
-            "un chapitre quand une question vous traverse. Les mots ont besoin de respirer, "
-            "et vous aussi. Ce livre résiste à la boulimie — il préfère la lenteur."
+            "Lis-le par petites touches. Un paragraphe au réveil, une page le dimanche soir, "
+            "un chapitre quand une question te traverse. Les mots ont besoin de respirer, "
+            "et toi aussi. Ce livre résiste à la boulimie — il préfère la lenteur."
         )},
         {'kind': 'paragraph', 'text': (
-            "Revenez-y aux grandes étapes : une rupture, une naissance, un déménagement, un deuil, "
-            "un démarrage. À chaque fois, vous verrez que les mêmes pages vous parlent autrement. "
-            "C'est que ce n'est pas le livre qui change — c'est vous. Et c'est précisément cela qu'il "
-            "vous aide à voir."
+            "Reviens-y aux grandes étapes : une rupture, une naissance, un déménagement, un deuil, "
+            "un démarrage. À chaque fois, tu verras que les mêmes pages te parlent autrement. "
+            "C'est que ce n'est pas le livre qui change — c'est toi. Et c'est précisément cela qu'il "
+            "t'aide à voir."
         )},
         {'kind': 'h2', 'text': "Comment lire chaque partie"},
         {'kind': 'paragraph', 'text': (
-            "Vous trouverez trois mouvements. D'abord <b>vos planètes</b> : qui vous êtes, "
-            "quelles sont les dix forces qui composent votre palette intérieure. "
-            "Puis <b>vos douze maisons</b> : les scènes de votre vie, les territoires que le ciel "
-            "a particulièrement éclairés chez vous. Enfin <b>vos aspects</b> : la manière dont ces "
+            "Tu trouveras trois mouvements. D'abord <b>tes planètes</b> : qui tu es, "
+            "quelles sont les dix forces qui composent ta palette intérieure. "
+            "Puis <b>tes douze maisons</b> : les scènes de ta vie, les territoires que le ciel "
+            "a particulièrement éclairés chez toi. Enfin <b>tes aspects</b> : la manière dont ces "
             "forces se parlent entre elles — en harmonie, en frottement, en complicité silencieuse."
         )},
-        {'kind': 'h2', 'text': "Un compagnon pour vos années à venir"},
+        {'kind': 'h2', 'text': "Un compagnon pour tes années à venir"},
         {'kind': 'paragraph', 'text': (
-            "Votre ciel natal ne bouge plus — il est votre partition fixe, tracée à votre naissance. "
-            "Mais vous, vous changez. À trente ans, un paragraphe sur Saturne pourra vous ennuyer ; "
+            "Ton ciel natal ne bouge plus — il est ta partition fixe, tracée à ta naissance. "
+            "Mais toi, tu changes. À trente ans, un paragraphe sur Saturne pourra t'ennuyer ; "
             "à quarante, il deviendra lumineux. À cinquante, le chapitre des maisons prendra un sens "
-            "neuf. Les planètes du ciel actuel activent tour à tour des zones de votre thème : "
-            "ce livre vous aide à décoder ces appels."
+            "neuf. Les planètes du ciel actuel activent tour à tour des zones de ton thème : "
+            "ce livre t'aide à décoder ces appels."
         )},
         {'kind': 'paragraph', 'text': (
-            "Alors prenez votre temps. Posez-le sur une étagère, revenez-y, soulignez, annotez, "
-            "offrez-vous le droit de ne pas tout comprendre tout de suite. "
-            "Que ce livre vous accompagne — longtemps."
+            "Alors prends ton temps. Pose-le sur une étagère, reviens-y, souligne, annote, "
+            "offre-toi le droit de ne pas tout comprendre tout de suite. "
+            "Que ce livre t'accompagne — longtemps."
         )},
         {'kind': 'paragraph', 'text': (
             '<i>— Plume Astrale</i>'

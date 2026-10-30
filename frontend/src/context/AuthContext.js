@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {createContext, useContext, useState, useEffect, useCallback} from 'react';
 import axios from 'axios';
 import { supabase } from '@/lib/supabase';
 import { readReferralCode, clearReferralCode } from '@/lib/referral';
@@ -197,7 +197,7 @@ export const AuthProvider = ({ children }) => {
           },
           { headers: { Authorization: `Bearer ${newSession.access_token}` } }
         );
-      } catch (e) { /* ignore */ }
+      } catch (_e) { /* ignore */ }
       setSession(newSession);
       await loadMe(newSession.access_token);
       _maybeAttachReferrer(newSession.access_token);

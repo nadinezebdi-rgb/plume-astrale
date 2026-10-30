@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { ArrowRight, Check, Loader2 } from 'lucide-react';
 import FrenchDateInput from '@/components/FrenchDateInput';
 
@@ -47,7 +47,7 @@ export default function NocturneLeadMagnet() {
       }
       setPdfUrl(data.pdf_url);
       setStatus('success');
-    } catch (err) {
+    } catch (_err) {
       setStatus('error');
       setErrorMsg('Un instant, la connexion s\'est interrompue. Réessayez dans quelques secondes.');
     }

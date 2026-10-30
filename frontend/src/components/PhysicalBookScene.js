@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Mise en scène éditoriale d'un véritable livre imprimé.
  *

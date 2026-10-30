@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-
+import {useState, useRef, useEffect} from 'react';
 const ZODIAC = [
   { symbol: '\u2648', name: 'Belier', color: '#E879F9' },
   { symbol: '\u2649', name: 'Taureau', color: '#F4C542' },
@@ -29,8 +28,6 @@ const NatalWheel = ({ className = '' }) => {
   const [rotation, setRotation] = useState(0);
   const [hovered, setHovered] = useState(null);
   const [scale, setScale] = useState(1);
-  const animRef = useRef(null);
-
   useEffect(() => {
     let frame;
     const animate = () => {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Gift, MessageCircle, BookOpen, ArrowRight } from 'lucide-react';
 

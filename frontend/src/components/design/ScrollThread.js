@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Fil d'Ariane — Signature #2.
  * Une fine ligne verticale doree 1px au centre du viewport qui connecte les sections.

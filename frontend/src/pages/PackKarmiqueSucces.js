@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Download, ArrowRight, Loader2, Mail } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Loader2, Mail } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import CercleSolenaInvite from '@/components/CercleSolenaInvite';
@@ -27,7 +27,7 @@ const PackKarmiqueSucces = () => {
       const r = await axios.get(`${API}/api/pack-karmique/status?session_id=${sessionId}`);
       setStatus(r.data || {});
       if (r.data?.pdf_ready) setPolling(false);
-    } catch (e) { /* silent */ }
+    } catch (_e) { /* silent */ }
   }, [sessionId]);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ const PackKarmiqueSucces = () => {
             Ton <em style={{ color: 'var(--pa-accent)', fontStyle: 'italic' }}>Pack Karmique</em><br />se compose
           </h1>
           <p className="text-base max-w-lg mx-auto" style={{ color: 'var(--pa-body)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic', lineHeight: 1.6 }}>
-            ~40 pages en cours de génération. Ton PDF sera envoyé par email dans quelques minutes.
+            ~40 pages en cours de génération. Ton PDF sera envoyé par email sous 15 minutes.
           </p>
         </div>
 

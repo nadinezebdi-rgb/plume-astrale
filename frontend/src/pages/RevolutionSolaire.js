@@ -1,5 +1,5 @@
 import use3DTilt from '@/hooks/use3DTilt';
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowLeft, Loader2, Sun, Star, Compass, ArrowRight } from 'lucide-react';
@@ -30,7 +30,7 @@ const TransitsToday = () => {
         const res = await axios.post(`${API_URL}/api/astrology/v3/transits/today`, {},
           { headers: { Authorization: `Bearer ${token}` } });
         if (!cancel && res.data?.success) setData(res.data);
-      } catch (e) {
+      } catch (_e) {
         if (!cancel) setError('Transits indisponibles aujourd\'hui.');
       }
       if (!cancel) setLoading(false);
@@ -319,6 +319,7 @@ const RevolutionSolaire = () => {
           </div>
         )}
       </div>
+      <SEO path="/services/revolution-solaire" />
       <SEOServiceEnrich slug="revolution-solaire" />
     </div>
   );

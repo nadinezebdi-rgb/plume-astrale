@@ -1,4 +1,160 @@
+# PRD — Plume Astrale (dernière MAJ 2026-02-29)
+
+## Avancement récent (voir CHANGELOG.md pour détails)
+- ✅ Compteur facture séquentiel strict `FACT-AAAA-NNNNNN` (Mongo atomique) — conformité comptable FR.
+- ✅ Alertes email admin pour sessions Stripe bloquées > 1h (scan 15 min, dédup, exclusion emails test).
+- ✅ Endpoint `POST /api/admin/stripe-refund` + helper `find-test-payments` (API refund depuis backend).
+
+## Backlog priorisé
+- 🟠 P0 — SEO Lot 2 : pré-rendering CRA pour chaque URL du sitemap (toujours en attente).
+- 🟢 P2 — QR code sharing pour événements physiques.
+- 🟢 P2 — Tracking par canal d'acquisition sur partages.
+
+---
+
+
 # Plume Astrale — PRD
+
+## 2026-02-27 — Correctifs post-paiement : dashboard admin + communication délais
+
+**📍 Contexte** : la fondatrice a testé le flux de paiement et constaté deux problèmes de contrôle :
+1. `/admin/payments-health` affichait « 2 payées / 48 € » pour un seul paiement Stripe réel de 24 €.
+2. Les sessions en cours de génération (10 min normal) étaient marquées « bloquées » et déclenchaient un bandeau « Incident ».
+3. Les communications utilisateur disaient « quelques minutes » / « sous 5 min » alors que la vraie durée est 10-15 min.
+
+**✅ Correctifs livrés** :
+- **Dashboard admin `/admin/payments-health`** (`backend/routes/admin_payments.py`) :
+  - **Déduplication par session_id** : chaque session Stripe ne compte qu'une fois, même si plusieurs lignes `payment_transactions` existent (retries, double-insert). Préférence `paid` > `stuck`.
+  - **Seuil 15 min paramétrable** (`stuck_after_minutes` query param) : une session n'est marquée bloquée qu'après 15 min depuis sa création. Les commandes en cours de génération n'alertent plus faussement.
+  - **Exclusion emails de test** : `contact@plume-astrale.fr`, `admin@plume-astrale.fr`, `test@*`, `@test.*`, `@example.*`, alias Gmail `+test` / `+debug` sont filtrés automatiquement des KPIs.
+  - **Seuils feu tricolore ajustés** : `red` demande désormais au moins 10 sessions dans la fenêtre pour éviter les fausses alertes sur petit volume.
+- **Communications utilisateur** (10 fichiers mis à jour) : passage de « quelques minutes » / « sous 5 min » / « en une minute » à **« sous 15 minutes »** partout :
+  - `ThemeNatalOneshotSucces.js`, `ComposerSucces.jsx`, `NosLivres.js` (2 occurrences), `PackKarmiqueSucces.js`, `DuoCompletionSucces.js`, `GiftCardRedeem.js`, `GiftCardPurchase.js`, `TrioDecouverteSucces.js`, `HeroOracle.js`, `SynastrieExitIntentModal.jsx`, `LectureCompleteSucces.js`.
+  - Remplacement complémentaire : « Soléna trace » → « Plume Astrale trace » dans `ThemeNatalOneshotSucces.js`.
+
+**🧪 Tests** : `backend/tests/test_admin_payments_health.py` (nouveau) — **7/7 passent** incluant un test de scénario réaliste reproduisant exactement le cas de la fondatrice :
+- Dédup même session 2 lignes → 1 comptée
+- Session créée il y a 5 min → PAS marquée bloquée
+- Session créée il y a 20 min + unpaid → marquée bloquée
+- Emails `contact@plume-astrale.fr`, `test@*`, `+test`, `@example.*` exclus
+- 24 € une seule fois au lieu de 48 € dédoublés
+
+**📁 Fichiers touchés** :
+- `backend/routes/admin_payments.py` *(dédup + seuil 15 min + exclusion test emails)*
+- 10 fichiers `frontend/src/pages/*` et `components/*` *(messaging 15 min)*
+- `backend/tests/test_admin_payments_health.py` *(nouveau)*
+
+---
+
+
+## 2026-02-27 — PDF échantillon propre + Facture FR auto après Stripe
+
+**🎯 Deux chantiers livrés en 1 session** :
+
+### Partie 1 — PDF échantillon public (`/demos/theme-natal-sample.pdf`)
+
+**Problèmes constatés** par la fondatrice :
+- Grand filigrane diagonal « APERCU EXTRAIT » sur chaque page.
+- Bandeau « Extrait non commercialisable · ~46 pages » en pied.
+- Mot « Complet » blanc en superposition visible derrière « Thème Natal » doré.
+- Mention « Soléna vous parle » résiduelle (persona retirée).
+- Glyphes `✦` et `℞` rendus en tofu (carrés vides) sur de nombreuses pages.
+
+**Correctifs** :
+- `backend/scripts/add_sample_watermark.py` → simplifié : ne pose plus ni filigrane, ni bandeau légal. Produit le PDF natal tel que configuré.
+- `backend/services/print_book_renderer.py` → suppression du mot « Complet » sur la couverture (lignes 246-253). Enregistrement d'une police `PlumeOrnament` (FreeSerif) pour les glyphes ornementaux. Fonctions `_plain()` et `_paragraphs()` filtrent les caractères qui provoquent du tofu en Cormorant Garamond (`℞♃♀♂☉✦❖⚜◆` + contrôles U+0000-1F).
+- `backend/services/natal_chart_extract.py` → `℞` remplacé par `(R)` dans les noms de planètes rétrogrades.
+- `backend/services/natal_manuscript_builder.py` → libellé rétrograde FR/EN sans symbole `℞`.
+- **Résultat** : 26 pages, 0 tofu, 0 « Complet », 0 « Soléna », 8 ✦ correctement rendus.
+
+### Partie 2 — Facture FR automatique après paiement Stripe
+
+**Problème** : Stripe envoie un reçu HTML/MHTML en anglais, inutilisable comme facture légale française.
+
+**Solution livrée** :
+- `backend/services/invoice_pdf.py` *(nouveau)* : générateur de facture PDF A4 FR, charte Nocturne Éditorial, Cormorant Garamond, mentions légales complètes.
+- `backend/services/invoice_delivery.py` *(nouveau)* : hook universel qui écoute `checkout.session.completed` + `payment_status=paid`, génère la facture PDF, envoie via Resend en pièce jointe du mail de confirmation. Mapping produit→libellé pour les 20+ produits (natal, synastrie, kabbale, numérologie, astrocarto, pack karmique, cercle Soléna, crédits, carte cadeau…).
+- `backend/server.py` → hook branché dans `_process_stripe_event` juste après Meta CAPI, non bloquant.
+- **Identité légale** utilisée (fournie par la fondatrice) :
+  - SIRET : `87860206900022`
+  - N° TVA intracommunautaire : `FR96878602069`
+  - Mention OBLIGATOIRE : « TVA non applicable, art. 293 B du CGI » (franchise de TVA)
+- **Idempotence** via table `invoices_sent` (session_id unique) → aucun double envoi en cas de replay webhook.
+- **Numérotation** `AAMM-XXXX` : préfixe année/mois + 4 derniers caractères du session Stripe. Ex : `2602-0838`.
+- **Moyen de paiement** reconstruit depuis Stripe PaymentIntent (ex : « Carte Visa …4242 »).
+
+**🧪 Tests** : `backend/tests/test_invoice_pdf.py` — **13/13 passent** (SIRET présent, N° TVA, mention franchise, infos client, montant 49,00 €, moyen de paiement, produit, date FR, référence transaction, 1 page A4 portrait, numérotation).
+
+**📁 Fichiers touchés** :
+- `backend/scripts/add_sample_watermark.py` *(réécrit : plus de filigrane)*
+- `backend/services/print_book_renderer.py` *(suppression « Complet », police OrnamentSerif, sanitize glyphes)*
+- `backend/services/natal_chart_extract.py` *(℞ → (R))*
+- `backend/services/natal_manuscript_builder.py` *(retrograde FR/EN sans ℞)*
+- `backend/services/invoice_pdf.py` *(nouveau)*
+- `backend/services/invoice_delivery.py` *(nouveau)*
+- `backend/server.py` *(hook invoice_delivery dans webhook Stripe)*
+- `backend/tests/test_invoice_pdf.py` *(nouveau)*
+- `frontend/public/demos/theme-natal-sample.pdf` *(régénéré)*
+
+---
+
+
+## 2026-02-27 — Refonte SEO Google Search Console : Lot 1 complet (nginx 301/404 + sitemap auto)
+
+**🎯 Objectif** : Corriger les problèmes SEO détectés par Google Search Console sur plume-astrale.fr : URLs parasites `?post=`, soft-404 systématiques, redirections JavaScript, signaux canonical contradictoires.
+
+**📍 Architecture tranchée** : les 301/404 vivent dans **`/app/deploy/nginx-frontend.conf`** (production). Le CRA dev server (preview) ne les gère pas — les tests curl se font après déploiement. React Navigate reste comme filet de sécurité côté client.
+
+**✅ Lot 1 livré** :
+- **1. Blog `?post=` → 301 serveur** (`deploy/nginx-frontend.conf`) :
+  - `/blog?post=X` → **301** `/blog/X`
+  - `/blog/n'importe-quoi?post=X` → **301** `/blog/X`
+  - Robots.txt audité : aucun `Disallow: *post=` → Google verra les 301.
+  - Aucun `?post=` hardcodé dans le code React (vérifié par grep ; les liens parasites viennent du widget Soro externe, capturés par le 301 nginx).
+- **2. Vraies erreurs 404** :
+  - Toute URL inconnue (`/page-qui-nexiste-pas-xyz`) renvoie **404 HTTP réel** (plus de soft-404).
+  - Slug blog inconnu (`/blog/article-inexistant`) → **404** (nginx valide contre liste explicite des 9 slugs, auto-générée).
+  - Signe horoscope inconnu (`/horoscope/zorglub`) → **404** (regex nginx stricte sur les 12 signes).
+  - Page 404 stylée Nocturne Éditorial créée à `/app/frontend/public/404.html` (noindex, liens Accueil/Blog/Livres/Horoscope/Contact).
+- **3. JS redirects → 301 serveur** : 46 redirections 301 explicites remplacent les `<Navigate />` React pour toutes les URLs legacy et doublons (`/temoignage`, `/home-experience-v3`, `/compatibilite-amoureuse`, `/kabbale`, `/karma-destin*`, `/premium*`, `/outils/*`, `/politique-de-confidentialite`, `/tirage-tarot`, `/mon-rituel`, `/chat-astral`, etc.).
+- **4. Canoniques horoscopes** : les 24 URLs `/horoscope/<signe>/<semaine|mois>` **301** vers `/horoscope/<signe>` (contenu identique vérifié dans `HoroscopeSign.js` : `:period` est ignoré par le composant). Également retirées du sitemap.
+- **5. Sitemap.xml auto-généré** (`scripts/generate_sitemap.py`) :
+  - **65 URLs** canoniques (vs 88 avant) : accueil, éditoriales, produits phares, 16 services canoniques, outils, 12 horoscopes, hub blog, 9 articles.
+  - **Aucune URL** qui redirige, aucune noindex, aucune privée, aucune `?param=`.
+  - `<lastmod>` dérivé de la vraie mtime du fichier React associé.
+  - **Branché à `yarn build`** via `"prebuild": "cd .. && python scripts/generate_sitemap.py"` dans `package.json` → régénéré automatiquement à chaque déploiement.
+  - Fragment nginx `/app/deploy/nginx-blog-slugs.conf` auto-généré aussi (liste explicite des slugs blog valides pour que `/blog/<slug>` renvoie 200 vs 404 selon existence).
+- **6. Robots.txt audité** : aucune règle `Disallow` ne bloque les 301 serveur. Les `/succes`, `/paiement/`, `/commande/`, `/admin` restent correctement bloqués.
+
+**🧪 Tests** :
+- `backend/tests/test_sitemap_generator.py` — **7/7 passent** (homepage présente, 9 articles présents, 12 signes horoscope présents sans semaine/mois, pages privées exclues, redirections exclues, canoniques `/services/*` présentes).
+- **15/15 redirections testées** avec nginx local (`nginx -t` + run) : chaque 301 renvoie le bon Location header.
+- `/blog?post=xyz` → 301 ✓
+- `/blog/a?post=b` → 301 /blog/b ✓
+- `/page-inconnue-xyz` → 404 ✓
+- `/blog/article-inexistant` → 404 ✓
+- `/temoignage` → 301 /temoignages ✓
+- `/home-experience-v3` → 301 / ✓
+- `/compatibilite-amoureuse` → 301 /services/compatibilite ✓
+- `/outils/numerologie` → 301 /services/numerologie ✓
+- `/horoscope/belier/semaine` → 301 /horoscope/belier ✓
+- `/horoscope/zorglub` → 404 ✓
+
+**📁 Fichiers touchés** :
+- `deploy/nginx-frontend.conf` *(réécrit : 264 lignes, 46 règles 301, 103 routes connues, 2 regex dynamiques validées, catch-all 404)*
+- `deploy/nginx-blog-slugs.conf` *(nouveau, auto-généré)*
+- `deploy/Dockerfile.frontend` *(ajout du COPY de nginx-blog-slugs.conf)*
+- `frontend/src/config/seoRoutes.js` *(nouveau — source unique VALID_ROUTES + REDIRECT_MAP + HOROSCOPE_SIGNS)*
+- `frontend/public/404.html` *(nouveau — page 404 stylée, noindex)*
+- `frontend/public/sitemap.xml` *(regénéré : 65 URLs canoniques, lastmod dynamique)*
+- `frontend/package.json` *(ajout script `prebuild`)*
+- `scripts/generate_sitemap.py` *(nouveau — régénérateur auto)*
+- `backend/tests/test_sitemap_generator.py` *(nouveau — 7 tests de régression)*
+
+**❗ Note** : LOT 2 (pre-rendering des pages pour que Google voie title/canonical/H1 sans JavaScript) est explicitement différé "seulement après validation du lot 1" selon la spec. À attaquer après validation du présent livrable.
+
+---
+
 
 ## 2026-02-27 — Refonte PDF Livre Astral : QA stricte + Ex-libris enrichi + 4 profils de test (Lot 6)
 

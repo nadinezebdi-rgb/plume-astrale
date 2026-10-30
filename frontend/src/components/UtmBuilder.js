@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import {useState, useMemo} from 'react';
 import { Copy, ExternalLink, Sparkles, Check } from 'lucide-react';
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://plume-astrale.fr';
@@ -55,7 +55,7 @@ export default function UtmBuilder() {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
   };
 
   return (

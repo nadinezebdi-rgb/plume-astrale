@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * LiveSalesCounter — DÉSACTIVÉ POUR LE CONCOURS 2026.
  *

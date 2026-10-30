@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import {useEffect} from 'react';
 import { X, Sparkles, HelpCircle, MessageCircle, BookOpen, Compass, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

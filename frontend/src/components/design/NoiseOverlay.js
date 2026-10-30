@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-
+import {useEffect} from 'react';
 /**
  * Grain SVG 3% opacite fixed en overlay + Souffle Astral (pulsation 12s).
  * Evite le banding OLED + effet ciel etoile subtil.

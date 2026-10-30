@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Download, FileText, Loader2, BookOpen } from 'lucide-react';
+import {useState} from 'react';
+import { Loader2, BookOpen } from 'lucide-react';
 
 /**
  * PdfPreviewButton — bouton de téléchargement d'un aperçu 3 pages du PDF prestige
@@ -25,7 +25,7 @@ export default function PdfPreviewButton({ product, variant = 'inline', testid }
       const url = `${process.env.REACT_APP_BACKEND_URL}/api/pdf-preview/${product}?download=true`;
       // Ouvre en nouvel onglet pour permettre au navigateur de gérer l'affichage
       window.open(url, '_blank', 'noopener');
-    } catch (e) {
+    } catch (_e) {
       setError("Impossible de télécharger l'aperçu. Réessaie dans un instant.");
     } finally {
       setTimeout(() => setLoading(false), 800);

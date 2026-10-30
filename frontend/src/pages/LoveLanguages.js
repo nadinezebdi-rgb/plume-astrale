@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Sparkles, ArrowLeft, Loader2, Download, Share2, ArrowRight } from 'lucide-react';
+import { Heart, Sparkles, ArrowLeft, Loader2, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import SEO from '@/components/SEO';
@@ -169,6 +169,7 @@ const LoveLanguages = () => {
           </div>
         )}
       </div>
+      <SEO path="/services/love-languages" />
       <SEOServiceEnrich slug="love-languages" />
     </div>
   );

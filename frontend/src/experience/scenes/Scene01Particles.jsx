@@ -9,7 +9,7 @@
  *  • Étoile centrale émissive qui respire
  *  • Fog ivoire pour estomper naturellement la profondeur sur papier blanc
  */
-import React, { useMemo, useRef } from 'react';
+import {useMemo, useRef} from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useExperienceStore } from '../useExperienceStore';
