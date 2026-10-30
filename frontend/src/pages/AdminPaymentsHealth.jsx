@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2, RefreshCw, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Receipt, Undo2 } from 'lucide-react';
+import { Loader2, RefreshCw, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Receipt, Undo2, Bell, Shield } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -142,6 +142,20 @@ export default function AdminPaymentsHealth() {
   const [invoiceCounter, setInvoiceCounter] = useState(null);
   const [refundingId, setRefundingId] = useState(null);
   const [refundReport, setRefundReport] = useState(null);
+  // AUDIT : test ping Slack manuel
+  const [slackPinging, setSlackPinging] = useState(false);
+  const [slackResult, setSlackResult] = useState(null);
+
+  const pingSlack = async () => {
+    setSlackPinging(true); setSlackResult(null);
+    try {
+      const r = await axios.post(`${API}/api/admin/slack-test-ping`, {},
+        { headers: { Authorization: `Bearer ${token}` } });
+      setSlackResult(r.data);
+    } catch (e) {
+      setSlackResult({ ok: false, reason: e.response?.data?.detail || 'Erreur appel endpoint.' });
+    } finally { setSlackPinging(false); }
+  };
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -237,7 +251,20 @@ export default function AdminPaymentsHealth() {
           <h1 className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#D4AF37' }}>
             Santé des paiements Stripe
           </h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Link to="/admin/csp-reports"
+              className="text-xs uppercase tracking-widest px-3 py-2 rounded-full flex items-center gap-2"
+              style={{ border: '1px solid rgba(212,175,55,0.35)', color: '#D4AF37' }}
+              data-testid="link-csp-reports">
+              <Shield className="w-3 h-3"/> CSP reports
+            </Link>
+            <button onClick={pingSlack} disabled={slackPinging}
+              className="text-xs uppercase tracking-widest px-3 py-2 rounded-full flex items-center gap-2"
+              style={{ border: '1px solid rgba(212,175,55,0.35)', color: '#D4AF37' }}
+              data-testid="slack-ping-btn">
+              {slackPinging ? <Loader2 className="w-3 h-3 animate-spin"/> : <Bell className="w-3 h-3"/>}
+              Ping Slack
+            </button>
             <select value={days} onChange={(e) => setDays(parseInt(e.target.value, 10))}
                     className="text-xs uppercase tracking-widest px-3 py-2 rounded-full"
                     style={{ border: '1px solid rgba(212,175,55,0.35)', background: 'transparent', color: '#D4AF37' }}
@@ -257,6 +284,20 @@ export default function AdminPaymentsHealth() {
             </button>
           </div>
         </div>
+
+        {slackResult && (
+          <div className="rounded-xl p-3 mb-4 text-sm flex items-center justify-between"
+            style={{
+              background: slackResult.ok ? 'rgba(74,222,128,0.10)' : 'rgba(239,68,68,0.10)',
+              border: `1px solid ${slackResult.ok ? 'rgba(74,222,128,0.35)' : 'rgba(239,68,68,0.35)'}`,
+              color: slackResult.ok ? '#4ADE80' : '#FCA5A5',
+            }} data-testid="slack-ping-result">
+            <span>{slackResult.ok ? '✓ Ping Slack envoyé — vérifier le canal.' : `✗ ${slackResult.reason}`}</span>
+            <button onClick={() => setSlackResult(null)} className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>
+              fermer
+            </button>
+          </div>
+        )}
 
         {error && (
           <div className="rounded-xl p-4 mb-6" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', color: '#FCA5A5' }}>

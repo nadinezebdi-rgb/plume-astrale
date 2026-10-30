@@ -543,3 +543,42 @@ async def admin_invoice_counter(_admin: dict = Depends(require_admin)) -> Dict[s
         'backend': 'mongo' if db_ok else 'fallback',
         'checked_at': datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ───────────────────────────────────────────────────────────────────────
+# Slack test ping — vérifier manuellement que SLACK_WEBHOOK_URL marche
+# AUDIT (2026-10-30 · Nao) : utile avant d'attendre une vraie alerte stuck.
+# ───────────────────────────────────────────────────────────────────────
+
+@router.post('/slack-test-ping')
+async def admin_slack_test_ping(_admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Envoie un message de test au Slack configuré. Retourne True si 2xx.
+
+    N'écrit rien en DB, n'affecte aucun flux produit. Idéal pour valider
+    la webhook après `secrets_request` ou un changement d'URL.
+    """
+    from services.slack_notify import send_slack_alert, is_configured
+    if not is_configured():
+        return {
+            'ok': False,
+            'configured': False,
+            'reason': 'SLACK_WEBHOOK_URL absent — ajouter la variable dans Emergent Secrets.',
+        }
+    sent = await send_slack_alert(
+        title='Test ping — Plume Astrale',
+        summary='Ce message confirme que la webhook Slack est joignable depuis la prod.',
+        fields=[
+            ('Déclenché par', _admin.get('email') or 'admin'),
+            ('Horodatage UTC', datetime.now(timezone.utc).isoformat(timespec='seconds')),
+        ],
+        url='https://plume-astrale.fr/admin/payments-health',
+        url_label='Ouvrir le dashboard',
+        emoji=':white_check_mark:',
+    )
+    return {
+        'ok': sent,
+        'configured': True,
+        'reason': 'Message envoyé (vérifier le canal Slack).' if sent
+                  else "Appel HTTP vers Slack non-2xx — webhook invalide, canal archivé ou réseau bloqué.",
+    }
+

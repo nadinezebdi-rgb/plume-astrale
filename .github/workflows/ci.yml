@@ -73,9 +73,60 @@ jobs:
         working-directory: frontend
         run: yarn install --frozen-lockfile
 
-      - name: Build
+      - name: ESLint
+        working-directory: frontend
+        continue-on-error: true   # phase 1 : rapport seulement, pas bloquant
+        run: npx eslint "src/**/*.{js,jsx}" --max-warnings 500
+
+      - name: Build (SKIP_PRERENDER car pas de Chrome en CI)
         working-directory: frontend
         env:
           CI: 'false' # React warnings = warnings, pas errors
           REACT_APP_BACKEND_URL: https://plume-astrale.fr
+          SKIP_PRERENDER: '1'
         run: yarn build
+
+  # ─── AUDIT regression (2026-10-30 · Nao) ───
+  # Garde-fou dédié : les tests qui couvrent les correctifs de l'audit qualité
+  # (crash SEO P0-1, Slack alerts, invoice counter, CSP reports) doivent rester
+  # verts à chaque PR, sinon merge bloqué via branch protection côté GitHub.
+  audit-regression:
+    name: Audit regression · tests critiques
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [backend-tests]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install deps
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Run audit tests (strict, aucun échec toléré)
+        working-directory: backend
+        env:
+          MONGO_URL: mongodb://localhost:27017
+          DB_NAME: plume_ci
+          SUPABASE_URL: https://ci.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ci-fake-key
+          EMERGENT_LLM_KEY: ci-fake-key
+          STRIPE_API_KEY: sk_test_ci
+          STRIPE_ALLOW_TEST_MODE: 'true'
+          DISABLE_BACKGROUND_TASKS: 'true'
+        run: |
+          pytest \
+            tests/test_slack_notify.py \
+            tests/test_stuck_sessions_alert.py \
+            tests/test_invoice_counter.py \
+            tests/test_sitemap_deprecated_paths_filter.py \
+            -q --tb=short

@@ -61,6 +61,7 @@ const Quotidien = React.lazy(() => import("./pages/Quotidien"));
 const CercleSolena = React.lazy(() => import("./pages/CercleSolena"));
 const AnalyticsAdmin = React.lazy(() => import("./pages/AnalyticsAdmin"));
 const AdminPaymentsHealth = React.lazy(() => import("./pages/AdminPaymentsHealth"));
+const AdminCspReports = React.lazy(() => import("./pages/AdminCspReports"));
 const BuyCredits = React.lazy(() => import("./pages/BuyCredits"));
 const CreditSuccess = React.lazy(() => import("./pages/CreditSuccess"));
 const Choix = React.lazy(() => import("./pages/Choix"));
@@ -278,6 +279,7 @@ function App() {
                 <Route path="/admin/lulu-orders" element={<AdminLuluOrders />} />
                 <Route path="/admin/alerts" element={<AdminAlerts />} />
                 <Route path="/admin/payments-health" element={<AdminPaymentsHealth />} />
+                <Route path="/admin/csp-reports" element={<AdminCspReports />} />
                 <Route path="/carte-cadeau" element={<GiftCardPurchase />} />
                 <Route path="/carte-cadeau/redeem/:code" element={<GiftCardRedeem />} />
                 <Route path="/carte-cadeau/merci" element={<GiftCardPurchase />} />

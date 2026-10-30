@@ -1,3 +1,32 @@
+## 2026-10-30 (nuit, lot 2) — Slack test ping + Dashboard CSP admin + CI amélioré
+
+### ✅ Backend
+`POST /api/admin/slack-test-ping` (nouveau) : envoie un message de test au Slack configuré. Retourne `{ok, configured, reason}`. Fail-silent si webhook absente.
+
+### ✅ Frontend
+- `/admin/csp-reports` (nouvelle page) : dashboard des violations CSP, filtre par fenêtre (1h → 30j), 3 KPIs (total, groupes, seuil Slack), table agrégée avec sévérité colorée (vert / orange / rouge au seuil 50), état vide "aucune violation" en vert.
+- `/admin/payments-health` : bouton **Ping Slack** dans le header, bannière verte/rouge avec résultat ; lien **CSP reports** vers la nouvelle page.
+- `App.js` : route `/admin/csp-reports` lazy-loadée.
+
+### ✅ CI (.github/workflows/ci.yml)
+- Nouveau job **ESLint** sur le frontend (phase 1 : `continue-on-error: true`, rapport uniquement).
+- Build frontend passe désormais avec `SKIP_PRERENDER=1` (pas de Chrome en CI runner).
+- Nouveau job **audit-regression** : lance strictement `test_slack_notify.py` + `test_stuck_sessions_alert.py` + `test_invoice_counter.py` + `test_sitemap_deprecated_paths_filter.py`. Zéro échec toléré. `needs: [backend-tests]` → ne tourne que si pytest général passe.
+
+### 🧪 Vérifs
+- Backend démarre OK, endpoints `/api/admin/slack-test-ping` et `/api/admin/invoice-counter` retournent 401 sans auth (donc routing + auth OK).
+- Build frontend OK, aucune nouvelle erreur console sur /admin/csp-reports et /admin/payments-health (redirect clean vers /connexion).
+
+### 🗂️ Fichiers touchés
+- `backend/routes/admin_payments.py` (endpoint slack-test-ping)
+- `frontend/src/pages/AdminCspReports.jsx` (nouveau)
+- `frontend/src/pages/AdminPaymentsHealth.jsx` (bouton Ping Slack + lien CSP)
+- `frontend/src/App.js` (route /admin/csp-reports)
+- `.github/workflows/ci.yml` (ESLint + audit-regression + SKIP_PRERENDER)
+
+---
+
+
 ## 2026-10-30 (nuit) — Admin Dashboard + Slack + CSP Reports
 
 ### 🎯 Objectifs
