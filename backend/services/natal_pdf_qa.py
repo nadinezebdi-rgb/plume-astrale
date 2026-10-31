@@ -58,6 +58,7 @@ _FORBIDDEN_COVER_WORDS = {'complet'}
 # faux-titre, demi-titres, colophon). Index 1-based.
 _STRUCTURAL_SPARSE_MARKERS = (
     'EX LIBRIS', 'E X   L I B R I S',  # ex-libris : illustration prédominante
+    'TES DONNÉES DE NAISSANCE',          # fiche de données (refonte 50 pages, p.5)
 )
 
 # Patterns regex identifiant une page structurelle légitime (demi-titre,

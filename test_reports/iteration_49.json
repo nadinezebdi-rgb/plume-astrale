@@ -52,7 +52,7 @@
     "backend": "100% (10/10 pytest — 9/10 on the first pass with 1 transient 502 on astrosexo, then 10/10 after retry)",
     "frontend": "100% (4/4 smoke checks — homepage Soléna hero, /astrocartographie testid, /outils/astrosexo testid, perso-block visible after sign click)"
   },
-  "test_credentials": "Admin admin@plume-astrale.fr / PlumeAdmin2026 available but not needed for this regression pass (all tested endpoints are public — Stripe checkout, tarot, oracle, astrosexo/personal, compatibility/generate, astrocarto).",
+  "test_credentials": "Admin admin@plume-astrale.fr / [redacted] available but not needed for this regression pass (all tested endpoints are public — Stripe checkout, tarot, oracle, astrosexo/personal, compatibility/generate, astrocarto).",
   "seed_data_creation": "3 TEST_-prefixed payment_transactions rows inserted in Supabase (TEST_iter49_*, TEST_plume15_*, TEST_bad_* @plume-astrale.fr) — all in status='initiated' since no real Stripe payment was completed. Safe to prune anytime.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

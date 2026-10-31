@@ -140,8 +140,16 @@ async def generate_enriched_natal_pdf(
     diag['is_ultra'] = diag['ai_planet_count'] >= 7 or diag['v3_raw_count'] >= 7
 
     # 5) Enrichissement livre (élément/modalité/trio/12 maisons/aspects/année)
+    # Aspects + maisons réels (chart_data → natal_report → calcul local) : sans eux,
+    # le livre racontait « aucun aspect fourni » et les pages maisons restaient vides.
+    from services.natal_chart_extract import extract_aspects, extract_houses
+    chart_aspects = extract_aspects(chart, natal_report_data, planets_dict)
+    chart_houses = [] if no_birth_time else extract_houses(chart, planets_dict)
+    diag['chart_aspects_count'] = len(chart_aspects)
+    diag['chart_houses_count'] = len(chart_houses)
+
     book_data = await _build_book_data(
-        name, bd, planets_dict, asc_sign_en, natal_report_data, force_refresh, lang,
+        name, bd, planets_dict, asc_sign_en, chart_aspects, chart_houses, force_refresh, lang,
     )
     diag['book_source'] = (book_data or {}).get('_source', 'none')
     diag['book_element'] = (book_data or {}).get('_em', {}).get('dominant_element')
@@ -243,6 +251,7 @@ async def generate_enriched_natal_pdf(
         'no_birth_time': no_birth_time,
         'ai_interpretations': ai_result,
         'enhanced_personal_analysis': enhanced_analysis,
+        'houses': chart_houses,
         'language': lang,
     }
 
@@ -371,7 +380,8 @@ async def _build_book_data(
     bd: dict,
     planets_dict: dict,
     asc_sign_en: str,
-    natal_report_data: Any,
+    chart_aspects: list,
+    chart_houses: list,
     force_refresh: bool,
     language: str = 'fr',
 ) -> dict | None:
@@ -379,32 +389,8 @@ async def _build_book_data(
     try:
         from services.natal_book_enrichment import enrich_book_chapters
 
-        aspects_for_book: list[dict] = []
-        houses_for_book: list[dict] = []
-        if isinstance(natal_report_data, dict):
-            aspects_raw = (
-                natal_report_data.get('aspects')
-                or natal_report_data.get('data', {}).get('aspects')
-                or []
-            )
-            for a in aspects_raw[:20]:
-                aspects_for_book.append({
-                    'planet1': a.get('planet1') or a.get('p1') or a.get('body1'),
-                    'planet2': a.get('planet2') or a.get('p2') or a.get('body2'),
-                    'type': a.get('type') or a.get('aspect') or a.get('name'),
-                    'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
-                })
-            houses_raw = (
-                natal_report_data.get('houses')
-                or natal_report_data.get('data', {}).get('houses')
-                or []
-            )
-            for i, h in enumerate(houses_raw[:12]):
-                houses_for_book.append({
-                    'num': h.get('number') or h.get('num') or (i + 1),
-                    'sign': aio.sign_to_fr(h.get('sign', '')) if h.get('sign') else '',
-                    'planets_in_house': h.get('planets') or h.get('planets_in_house') or [],
-                })
+        aspects_for_book: list[dict] = list(chart_aspects or [])
+        houses_for_book: list[dict] = list(chart_houses or [])
 
         planets_book: list[dict] = []
         for pfr, pen in _BOOK_PLANETS_FR_EN:

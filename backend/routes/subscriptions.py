@@ -22,6 +22,7 @@ Webhook events consommés (Stripe → /api/webhook/stripe) :
     Puis coller price_XXX dans .env : STRIPE_CERCLE_SOLENA_PRICE_ID=price_...
 """
 from __future__ import annotations
+from services.origin_guard import validate_origin
 import os
 import logging
 from typing import Optional
@@ -91,7 +92,7 @@ async def cercle_solena_checkout(
     tier = payload.tier if payload.tier in ('normal', 'premium') else 'normal'
     price_id = _get_price_id(tier)
     product_key = _product_key_for_tier(tier)
-    origin = payload.origin_url.rstrip('/')
+    origin = validate_origin(payload.origin_url)
     supabase = get_admin_client()
 
     # Récupère/crée un customer Stripe lié à ce user Supabase (persisté dans profiles.stripe_customer_id)
@@ -197,7 +198,7 @@ async def create_portal_session(payload: CheckoutPayload, user: dict = Depends(g
     try:
         portal = stripe.billing_portal.Session.create(
             customer=customer_id,
-            return_url=payload.origin_url.rstrip('/') + '/mon-compte',
+            return_url=validate_origin(payload.origin_url) + '/mon-compte',
         )
     except stripe.error.StripeError as e:
         raise HTTPException(status_code=502, detail=f'Erreur Stripe portal: {e.user_message or str(e)}')

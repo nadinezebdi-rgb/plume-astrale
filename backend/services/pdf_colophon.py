@@ -30,7 +30,8 @@ from typing import Optional
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import Paragraph, Spacer, Image as RLImage, KeepTogether
+from reportlab.platypus import Spacer, Image as RLImage, KeepTogether
+from services.pdf_theme import SafeParagraph as Paragraph
 
 logger = logging.getLogger(__name__)
 
