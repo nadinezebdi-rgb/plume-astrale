@@ -30,7 +30,7 @@ describe('NewHome Component', () => {
     jest.clearAllMocks();
   });
 
-  test('renders correctly', () => {
+  test('renders correctly', async () => {
     render(
       <MemoryRouter>
         <NewHome />
@@ -66,7 +66,7 @@ describe('NewHome Component', () => {
     expect(screen.getByTestId('moon-form')).toBeInTheDocument();
 
     // Vérifier la lune 3D
-    expect(screen.getByTestId('enhanced-moon-3d')).toBeInTheDocument();
+    expect(await screen.findByTestId('enhanced-moon-3d')).toBeInTheDocument();
   });
 
   test('displays step 1 form correctly', () => {
@@ -239,8 +239,8 @@ describe('NewHome Component', () => {
     );
 
     const form = screen.getByTestId('moon-form');
-    expect(form).toHaveStyle('backdrop-filter: blur(16px)');
-    expect(form).toHaveStyle('border-radius: 28px');
+    expect(form.style.backdropFilter).toBe('blur(16px)');
+    expect(form.style.borderRadius).toBe('28px');
   });
 
   test('displays Solena discovery button', () => {

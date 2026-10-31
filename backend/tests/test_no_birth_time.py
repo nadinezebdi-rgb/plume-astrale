@@ -6,6 +6,7 @@ Fix : détecter no_birth_time, retirer ascendant + maisons du PDF, colophon
 """
 from __future__ import annotations
 import inspect
+import re
 
 
 def test_checkout_accepts_missing_birth_time():
@@ -45,8 +46,12 @@ def test_natal_pdf_v2_skips_ascendant_cell_when_no_birth_time():
     from services import natal_pdf_v2
     src = inspect.getsource(natal_pdf_v2)
     assert 'no_birth_time' in src
-    # La cell Ascendant doit être conditionnelle
-    assert 'if asc_sign and not no_birth_time' in src
+    # La cell Ascendant doit être conditionnelle. Depuis la refonte « Thème Natal
+    # 50 pages », l'ascendant est neutralisé à l'appel des pages (synthèse,
+    # données de naissance, ex-libris) plutôt que via un `if` dans la grille.
+    assert ("'' if no_birth_time else asc_sign" in src
+            or "None if no_birth_time else asc_sign" in src
+            or 'if asc_sign and not no_birth_time' in src)
 
 
 def test_colophon_product_name_edition_des_planetes():
@@ -102,8 +107,11 @@ def test_natal_pdf_v2_calls_colophon_even_in_no_birth_time_mode():
     """Colophon doit toujours être appelé, même quand bd=False (no_birth_time)."""
     from services import natal_pdf_v2
     src = inspect.getsource(natal_pdf_v2)
-    # Condition élargie : bd OU no_birth_time
-    assert 'if bd or no_birth_time:' in src
+    # Depuis la refonte « Thème Natal 50 pages », le colophon est appelé sans
+    # condition à la fin de _build_story (indentation 8 espaces = hors de tout
+    # bloc `if bd`). L'ancienne forme `if bd or no_birth_time:` reste acceptée.
+    unconditional = re.search(r'^ {8}colophon_page\(', src, re.MULTILINE)
+    assert unconditional or 'if bd or no_birth_time:' in src
 
 
 # ═════════════════════════════════════════════════════════════════════════

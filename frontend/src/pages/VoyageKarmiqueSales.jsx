@@ -2,6 +2,7 @@ import {useState, useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Compass, ShieldCheck, Clock, Mail } from 'lucide-react';
 import SEO from '@/components/SEO';
+import FrenchDateInput from '@/components/FrenchDateInput';
 import { event as trackEvent, ctaClick } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -210,7 +211,7 @@ export default function VoyageKarmiqueSales() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 32 }}>
                 <div className="ne-field">
                   <label className="ne-label" htmlFor="v-date">Date de naissance</label>
-                  <input id="v-date" className="ne-input" type="date" value={form.birth_date}
+                  <FrenchDateInput id="v-date" className="ne-input" type="date" value={form.birth_date}
                     onChange={upd('birth_date')} required data-testid="voyage-birthdate" />
                 </div>
                 <div className="ne-field">

@@ -7,6 +7,7 @@ sans appel IA, 100 % déterministe.
 """
 from __future__ import annotations
 
+import hashlib
 import io
 import random
 from typing import Dict, Tuple
@@ -219,7 +220,10 @@ def generate_planet_png(sun_sign: str, size: int = 1200,
     star_warmth = SEASON_STAR_WARMTH[season]
 
     # Seed déterministe inclut la saison → signatures distinctes par édition.
-    rng = random.Random(hash((ruler, season)) & 0xFFFFFFFF)
+    # hashlib (et non hash()) : hash() varie à chaque redémarrage du process
+    # (PYTHONHASHSEED), ce qui rendait la couverture non reproductible.
+    _seed = int.from_bytes(hashlib.sha256(f'{ruler}|{season}'.encode('utf-8')).digest()[:4], 'big')
+    rng = random.Random(_seed)
     img = Image.new('RGBA', (size, size), (*sky_rgb, 255))
     _add_starfield(img, rng, density=max(80, size // 7), warmth=star_warmth)
 

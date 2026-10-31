@@ -25,6 +25,7 @@ from typing import Any, Optional
 import stripe
 
 from config import get_settings
+from services.origin_guard import validate_origin
 from services.print_approval_service import create_print_approval
 from services.supabase_client import get_admin_client
 from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
@@ -89,7 +90,7 @@ async def create_edition_reliee_checkout(
     }
 
     # Stripe checkout — 149 EUR
-    origin = origin.rstrip('/')
+    origin = validate_origin(origin)
     success_url = f'{origin}/edition-reliee/merci?session_id={{CHECKOUT_SESSION_ID}}'
     cancel_url = f'{origin}/edition-reliee'
 

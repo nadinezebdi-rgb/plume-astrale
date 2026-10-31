@@ -16,6 +16,11 @@ def _jwks_client() -> PyJWKClient:
     return PyJWKClient(jwks_url, cache_keys=True, lifespan=600)
 
 
+_ALLOWED_ALGS = ('ES256', 'RS256', 'EdDSA', 'HS256')
+# Les jetons de session Supabase portent toujours aud='authenticated' (pas les clés anon/service).
+_EXPECTED_AUDIENCE = 'authenticated'
+
+
 def verify_supabase_token(token: str) -> dict:
     """Decode + verify un JWT Supabase. Tente d'abord JWKS (ES256/RS256), fallback HS256."""
     s = get_settings()
@@ -25,28 +30,30 @@ def verify_supabase_token(token: str) -> dict:
     except InvalidTokenError:
         raise HTTPException(status_code=401, detail='Invalid token')
 
-    alg = header.get('alg', 'HS256')
-    # SEC hardening : vérifie l'audience Supabase 'authenticated' (lève 401 si absente)
-    # et borne les algorithmes acceptés par chemin pour éviter algorithm confusion.
+    alg = header.get('alg')
+    if alg not in _ALLOWED_ALGS:
+        raise HTTPException(status_code=401, detail='Invalid token')
+    options = {'require': ['exp', 'sub']}
     try:
-        if alg in ('ES256', 'RS256', 'EdDSA'):
+        if alg == 'HS256':
+            payload = jwt.decode(
+                token, s.SUPABASE_JWT_SECRET, algorithms=['HS256'],
+                audience=_EXPECTED_AUDIENCE, options=options,
+            )
+        else:
             signing_key = _jwks_client().get_signing_key_from_jwt(token).key
             payload = jwt.decode(
                 token, signing_key, algorithms=[alg],
-                audience='authenticated',
-                options={'verify_aud': True},
-            )
-        else:
-            payload = jwt.decode(
-                token, s.SUPABASE_JWT_SECRET, algorithms=['HS256'],
-                audience='authenticated',
-                options={'verify_aud': True},
+                audience=_EXPECTED_AUDIENCE, options=options,
             )
         return payload
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail='Token expired')
     except InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f'Invalid token: {e}')
+    except jwt.PyJWTError:
+        # ex. clé de signature introuvable dans le JWKS
+        raise HTTPException(status_code=401, detail='Invalid token')
 
 
 def get_current_user(request: Request) -> dict:

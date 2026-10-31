@@ -18,7 +18,8 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import Path as PathParam
 from fastapi.responses import FileResponse
 
 from services.book_engine_shared.pipeline import (
@@ -32,12 +33,20 @@ from services.book_engine_shared.domain import (
 from services.book_engine_v2 import render_manuscript_to_pdf_v2
 from services.book_engine_v2.pdf_qa import run_all_checks, report
 from services.supabase_client import get_admin_client
+from routes.admin import require_admin
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix='/admin/book', tags=['admin', 'book'])
+# Toutes les routes de ce module sont réservées aux admins (génération PDF, QA, diagnostics).
+router = APIRouter(
+    prefix='/admin/book',
+    tags=['admin', 'book'],
+    dependencies=[Depends(require_admin)],
+)
 
+# session_id sert ? construire des noms de fichiers : caract?res s?rs uniquement
+_SID_PATTERN = r'^[A-Za-z0-9_-]{1,100}$'
 V2_LOCAL_DIR = PIPELINE_ASSETS_DIR / 'composer_books_v2'
 V2_LOCAL_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -104,7 +113,7 @@ async def _build_manuscript_from_session(session_id: str) -> Manuscript:
 
 @router.post('/generate/{session_id}')
 async def admin_generate_v2(
-    session_id: str,
+    session_id: str = PathParam(..., pattern=_SID_PATTERN),
     profile: str = Query('screen', description="'print' ou 'screen'"),
     with_cover: bool = Query(False, description='Génère la cover Nano Banana avant rendu'),
 ):
@@ -151,7 +160,7 @@ async def admin_generate_v2(
 
 
 @router.get('/qa/{session_id}')
-async def admin_qa(session_id: str):
+async def admin_qa(session_id: str = PathParam(..., pattern=_SID_PATTERN)):
     """Lance les contrôles QA sur le dernier PDF v2 généré."""
     pdf = _pdf_path_for(session_id)
     if not pdf.exists():
@@ -161,7 +170,7 @@ async def admin_qa(session_id: str):
 
 
 @router.get('/preview.pdf')
-async def admin_preview_pdf(session_id: str):
+async def admin_preview_pdf(session_id: str = Query(..., pattern=_SID_PATTERN)):
     """Sert le dernier PDF v2 généré (usage aperçu navigateur)."""
     pdf = _pdf_path_for(session_id)
     if not pdf.exists():
@@ -346,7 +355,7 @@ async def admin_pdf_engine_health():
 
 @router.post('/regen-cover/{session_id}')
 async def admin_regen_cover(
-    session_id: str,
+    session_id: str = PathParam(..., pattern=_SID_PATTERN),
     force: bool = Query(True, description='Bypasse le cache Nano Banana'),
     preview: bool = Query(False, description='Retourne le PNG au lieu du JSON'),
 ):

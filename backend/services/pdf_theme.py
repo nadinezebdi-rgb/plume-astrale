@@ -14,7 +14,9 @@ Usage :
 """
 from __future__ import annotations
 import logging
+import re
 from pathlib import Path
+from reportlab.platypus import Paragraph
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.lib.styles import ParagraphStyle
@@ -57,6 +59,26 @@ FONTS_DIR = Path(__file__).resolve().parent.parent / 'assets' / 'fonts'
 _FONTS_REGISTERED = False
 
 
+def _register_font_aliases(candidates: dict[str, list[str]]) -> None:
+    # Alias « Cormorant Garamond » : les pages « livre » (pdf_book_pages,
+    # pdf_editorial_*) demandent ce nom, jamais enregistré jusqu'ici → elles
+    # retombaient en Times alors que les pages planètes utilisaient Cormorant,
+    # d'où une typographie incohérente dans un même PDF.
+    for alias, source in (
+        ('Cormorant Garamond', 'Cormorant'),
+        ('Cormorant Garamond Italic', 'Cormorant-Italic'),
+        ('Cormorant Garamond Bold', 'Cormorant-Bold'),
+    ):
+        try:
+            if _is_registered(source) and not _is_registered(alias):
+                font_file = next(
+                    (FONTS_DIR / f for f in candidates[source] if (FONTS_DIR / f).exists()), None)
+                if font_file:
+                    pdfmetrics.registerFont(TTFont(alias, str(font_file)))
+        except Exception as e:
+            logger.warning(f"[pdf_theme] alias {alias} failed: {e}")
+
+
 def register_fonts() -> bool:
     """Enregistre Cinzel + Cormorant Garamond dans ReportLab (idempotent).
 
@@ -92,6 +114,19 @@ def register_fonts() -> bool:
                 except Exception as e:
                     logger.warning(f"[pdf_theme] failed to load {path}: {e}")
 
+    _register_font_aliases(candidates)
+    # Familles : sans elles, <b>/<i> dans un Paragraph lèvent une erreur de mapping.
+    for family, normal, bold, italic in (
+        ('Cormorant', 'Cormorant', 'Cormorant-Bold', 'Cormorant-Italic'),
+        ('Cormorant Garamond', 'Cormorant Garamond', 'Cormorant Garamond Bold', 'Cormorant Garamond Italic'),
+    ):
+        if all(_is_registered(n) for n in (normal, bold, italic)):
+            try:
+                pdfmetrics.registerFontFamily(
+                    family, normal=normal, bold=bold, italic=italic, boldItalic=bold)
+            except Exception as e:
+                logger.warning(f"[pdf_theme] family {family} failed: {e}")
+
     # Police `OrnamentSerif` pour glyphes ornementaux (✦ ⚜ ◆ ❖ ─).
     # Cormorant/Cinzel ne fournissent PAS ces glyphes — sans cette police,
     # ReportLab affiche des carrés vides (.notdef). FreeSerif couvre le
@@ -101,6 +136,7 @@ def register_fonts() -> bool:
         Path('/usr/share/fonts/truetype/freefont/FreeSerif.ttf'),
         Path('/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf'),
         FONTS_DIR / 'FreeSerif.ttf',
+        Path('C:/Windows/Fonts/seguisym.ttf'),
     ]
     for symbol_path in symbol_paths:
         if symbol_path.exists():
@@ -132,6 +168,63 @@ def font(name: str, fallback: str = 'Helvetica') -> str:
         return name
     except Exception:
         return fallback
+
+
+_MOIS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août',
+            'septembre', 'octobre', 'novembre', 'décembre']
+
+
+def format_date_fr(dt=None) -> str:
+    """Date en français ('31 juillet 2026'), indépendante de la locale du serveur."""
+    from datetime import datetime
+    dt = dt or datetime.now()
+    return f'{dt.day} {_MOIS_FR[dt.month - 1]} {dt.year}'
+
+
+def _is_registered(name: str) -> bool:
+    try:
+        pdfmetrics.getFont(name)
+        return True
+    except Exception:
+        return False
+
+
+# Glyphes absents de Cinzel / Cormorant : ils s'affichent en carré vide (.notdef).
+_ORNAMENT_CHARS = '✦✧❖◆⚜⁘'
+_ORNAMENT_FALLBACK = {'✦': '*', '✧': '*', '❖': '*', '◆': '*', '⚜': '*', '⁘': '·'}
+
+
+def ornament_safe(text: str) -> str:
+    """Rend les glyphes ornementaux sûrs : police OrnamentSerif si disponible,
+    sinon remplacement par un caractère ASCII (jamais de carré vide)."""
+    if not text or not any(c in text for c in _ORNAMENT_CHARS):
+        return text
+    register_fonts()
+    out = []
+    has_ornament_font = _is_registered('OrnamentSerif')
+    in_ornament_font = False
+    for part in re.split(r'(<[^<>]*>)', text):
+        if part.startswith('<'):
+            low = part.lower()
+            if 'name="ornamentserif"' in low or "name='ornamentserif'" in low:
+                in_ornament_font = True
+            elif low.startswith('</font'):
+                in_ornament_font = False
+            out.append(part)
+            continue
+        if has_ornament_font and not in_ornament_font:
+            part = re.sub(f'([{_ORNAMENT_CHARS}]+)', r'<font name="OrnamentSerif">\1</font>', part)
+        elif not has_ornament_font:
+            part = ''.join(_ORNAMENT_FALLBACK.get(c, c) for c in part)
+        out.append(part)
+    return ''.join(out)
+
+
+class SafeParagraph(Paragraph):
+    """Paragraph qui neutralise les glyphes ornementaux manquants dans la police courante."""
+
+    def __init__(self, text, style=None, *args, **kwargs):
+        super().__init__(ornament_safe(text), style, *args, **kwargs)
 
 
 # ═══════════════════════════════════════════════════════════

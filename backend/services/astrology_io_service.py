@@ -155,7 +155,10 @@ def extract_planets(data: Optional[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]
             continue
         sign = expand_sign(p.get('sign') or (p.get('position') or {}).get('sign') or '')
         house = p.get('house') if p.get('house') is not None else (p.get('position') or {}).get('house')
-        out[nm.lower()] = {'name': nm, 'sign': sign, 'house': house, 'degree': p.get('degree')}
+        out[nm.lower()] = {
+            'name': nm, 'sign': sign, 'house': house, 'degree': p.get('degree'),
+            'absolute_longitude': p.get('absolute_longitude'),
+        }
     return out
 
 

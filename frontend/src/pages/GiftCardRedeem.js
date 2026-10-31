@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Gift, Loader2, Download } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -143,7 +144,7 @@ export default function GiftCardRedeem() {
               <div style={rowStyle}>
                 <label style={{ display: 'grid', gap: 4 }}>
                   <small style={smallLabel}>Date de naissance</small>
-                  <input required type="date" value={form.birth_date}
+                  <FrenchDateInput required type="date" value={form.birth_date}
                          onChange={(e) => setForm({ ...form, birth_date: e.target.value })}
                          data-testid="gift-redeem-birthdate" style={inputStyle} />
                 </label>
