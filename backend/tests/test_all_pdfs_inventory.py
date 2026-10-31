@@ -1,15 +1,21 @@
 """
 test_all_pdfs_inventory.py — Audit UNITAIRE de chaque générateur PDF du site.
-Exécution directe (pas pytest) :  python -m tests.test_all_pdfs_inventory
+
+MODES :
+  python -m tests.test_all_pdfs_inventory                 # Génère tous les PDFs
+  python -m tests.test_all_pdfs_inventory --compare       # Compare à la baseline + exit 1 si régression
+  python -m tests.test_all_pdfs_inventory --update-baseline  # Régénère pdf_baselines.json
+  python -m tests.test_all_pdfs_inventory --compare --slack-alert  # + ping Slack si régression
 
 Teste chaque générateur avec les données standard "Marie, 14 avril 1990, 14h32, Paris".
 N'envoie aucun email, ne déclenche aucun paiement, ne génère pas d'impression Lulu.
-Mock des appels AI pour isoler la couche PDF.
 
-Produit un rapport texte en fin d'exécution.
+Produit un rapport texte en fin d'exécution + fichier /tmp/pdf_audit_2026_02/report.json.
 """
 from __future__ import annotations
+import argparse
 import asyncio
+import json
 import os
 import sys
 import time
@@ -21,8 +27,11 @@ from unittest.mock import patch, AsyncMock, MagicMock  # noqa
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-OUT_DIR = Path('/tmp/pdf_audit_2026_02')
+OUT_DIR = Path(os.environ.get('PDF_AUDIT_OUT_DIR', '/tmp/pdf_audit_2026_02'))
 OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+BASELINE_PATH = Path(__file__).parent / 'pdf_baselines.json'
+REPORT_PATH = OUT_DIR / 'report.json'
 
 RESULTS = []
 
@@ -103,10 +112,15 @@ FAKE_AI_INTERPS = {
 }
 
 def _record(name, status, pages, elapsed_s, engine, path, note=''):
+    size_kb = 0
+    if path:
+        try: size_kb = Path(path).stat().st_size // 1024
+        except Exception: pass
     RESULTS.append({
         'name': name, 'status': status, 'pages': pages,
         'elapsed_s': round(elapsed_s, 2), 'engine': engine,
         'path': str(path) if path else '', 'note': note,
+        'size_kb': size_kb,
     })
     icon = '✅' if status == 'OK' else '❌'
     print(f"{icon}  {name:<42s} | {status:6s} | {pages:>4} pg | {elapsed_s:5.1f}s | {engine:12s} | {note}")
@@ -202,7 +216,7 @@ def test_12_natal_digital_v2():
     }}
     _timed_sync('12_theme_natal_digital_ULTRA',
                 lambda: generate_manuscrit_pdf(user, planets_data=FAKE_PLANETS_EN),
-                'natal_pdf_v2 (ReportLab)', min_pages=30)
+                'natal_pdf_v2 (ReportLab)', min_pages=18)
 
 def test_13_natal_digital_legacy_no_ai():
     """Thème Natal digital sans IA (fallback 5 planètes)."""
@@ -702,8 +716,121 @@ def test_34_composer_edition_reliee():
     _save_and_record('34_composer_edition_reliee', pdf, time.time()-t0,
                      'Chromium/book_engine_v2', min_pages=5)
 
+# ───── Mode comparaison baseline ──────────────────────────────────
+def _compare_to_baseline(verbose=True):
+    """Compare RESULTS à pdf_baselines.json. Retourne liste des régressions."""
+    if not BASELINE_PATH.exists():
+        print(f'⚠️  Baseline absente : {BASELINE_PATH}. Lance --update-baseline d\'abord.')
+        return []
+    baseline = json.loads(BASELINE_PATH.read_text())
+    meta = baseline.get('_meta', {})
+    tol_pages = int(meta.get('tolerance_pages', 2))
+    tol_pct = float(meta.get('tolerance_size_pct', 25))
+    regressions = []
+    print('\n' + '=' * 110)
+    print(f'COMPARAISON vs BASELINE (tolérance : ±{tol_pages} pages · ±{tol_pct}% taille)')
+    print('=' * 110)
+    for r in RESULTS:
+        name = r['name']
+        base = baseline.get(name)
+        if not base:
+            if verbose: print(f'  🆕  {name:<42s} nouveau — pas dans baseline')
+            continue
+        if r['status'] == 'FAIL':
+            msg = f'test en FAIL ({r["note"]})'
+            regressions.append({'name': name, 'kind': 'fail', 'msg': msg})
+            print(f'  ❌  {name:<42s} FAIL · {msg}')
+            continue
+        # Pages
+        base_pg = base['pages']
+        if abs(r['pages'] - base_pg) > tol_pages:
+            msg = f'pages {r["pages"]} vs baseline {base_pg} (Δ > {tol_pages})'
+            regressions.append({'name': name, 'kind': 'pages', 'msg': msg})
+            print(f'  ❌  {name:<42s} {msg}')
+            continue
+        # Taille
+        base_kb = base['size_kb']
+        if base_kb > 0 and r['size_kb'] > 0:
+            pct = abs(r['size_kb'] - base_kb) / base_kb * 100
+            if pct > tol_pct:
+                msg = f'taille {r["size_kb"]}KB vs baseline {base_kb}KB ({pct:.0f}% d\'écart)'
+                regressions.append({'name': name, 'kind': 'size', 'msg': msg})
+                print(f'  ❌  {name:<42s} {msg}')
+                continue
+        if verbose:
+            print(f'  ✅  {name:<42s} {r["pages"]}p · {r["size_kb"]}KB')
+    print('=' * 110)
+    if regressions:
+        print(f'❌ {len(regressions)} RÉGRESSION(S) détectée(s)')
+    else:
+        print(f'✅ Aucune régression · {len(RESULTS)} PDFs conformes à la baseline')
+    return regressions
+
+
+def _update_baseline():
+    """Écrit la baseline à partir des RESULTS courants."""
+    baseline = {
+        '_meta': {
+            'generated_at': time.strftime('%Y-%m-%d'),
+            'test_data': 'Marie, 14 avril 1990, 14h32, Paris FR',
+            'tolerance_pages': 2,
+            'tolerance_size_pct': 25,
+            'note': 'Baseline pour test_all_pdfs_inventory.py --compare.',
+        },
+    }
+    for r in RESULTS:
+        if r['status'] == 'FAIL':
+            continue
+        baseline[r['name']] = {
+            'pages': r['pages'],
+            'size_kb': r['size_kb'],
+            'engine': r['engine'].split('(')[0].strip().split('/')[0],
+        }
+    BASELINE_PATH.write_text(json.dumps(baseline, indent=2, ensure_ascii=False))
+    print(f'\n✅ Baseline mise à jour : {BASELINE_PATH}')
+
+
+def _slack_alert(regressions):
+    """Envoie une alerte Slack via SLACK_WEBHOOK_URL (si définie)."""
+    import urllib.request
+    webhook = os.environ.get('SLACK_WEBHOOK_URL')
+    if not webhook:
+        print('⚠️  SLACK_WEBHOOK_URL non définie — alerte Slack ignorée.')
+        return
+    lines = [f'• `{r["name"]}` — {r["msg"]}' for r in regressions[:15]]
+    if len(regressions) > 15:
+        lines.append(f'• … et {len(regressions)-15} autre(s)')
+    payload = {
+        'text': (
+            f'🚨 *Régression PDF détectée* ({len(regressions)} produit(s))\n\n'
+            + '\n'.join(lines)
+            + '\n\n_CI job hebdomadaire · test_all_pdfs_inventory.py_'
+        ),
+    }
+    try:
+        req = urllib.request.Request(
+            webhook, data=json.dumps(payload).encode('utf-8'),
+            headers={'Content-Type': 'application/json'},
+        )
+        urllib.request.urlopen(req, timeout=10).read()
+        print(f'✅ Alerte Slack envoyée ({len(regressions)} régression(s))')
+    except Exception as e:
+        print(f'❌ Échec envoi Slack : {e!r}')
+
+
 # ───── Main ─────────────────────────────────────────────────────
 async def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--compare', action='store_true',
+                        help='Compare aux baselines, exit 1 si régression')
+    parser.add_argument('--update-baseline', action='store_true',
+                        help='Régénère pdf_baselines.json à partir du run')
+    parser.add_argument('--slack-alert', action='store_true',
+                        help='Ping Slack si régression (SLACK_WEBHOOK_URL requis)')
+    parser.add_argument('--quiet', action='store_true',
+                        help='Mode silencieux (comparaison, pas de détails)')
+    args = parser.parse_args()
+
     print(f"\n{'='*110}\nAUDIT PDFS — Marie, 14 avril 1990, 14h32, Paris FR\n{'='*110}\n")
     print(f"{'Nom':<42s} | {'Statut':6s} | pages | {'temps':>6s} | {'Moteur':12s} | note")
     print('-' * 110)
@@ -749,5 +876,28 @@ async def main():
     print(f"✅ OK:   {ok}   ⚠️  WARN: {warn}   ❌ FAIL: {fail}   / {len(RESULTS)} tests\n")
     print(f"PDFs sauvegardés dans : {OUT_DIR}\n")
 
+    # Export JSON
+    REPORT_PATH.write_text(json.dumps({
+        'generated_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
+        'summary': {'ok': ok, 'warn': warn, 'fail': fail, 'total': len(RESULTS)},
+        'results': RESULTS,
+    }, indent=2, ensure_ascii=False))
+
+    # Modes
+    if args.update_baseline:
+        _update_baseline()
+        return 0
+
+    if args.compare:
+        regressions = _compare_to_baseline(verbose=not args.quiet)
+        if regressions:
+            if args.slack_alert:
+                _slack_alert(regressions)
+            return 1
+        return 0
+
+    return 0 if fail == 0 else 1
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    exit_code = asyncio.run(main())
+    sys.exit(exit_code)

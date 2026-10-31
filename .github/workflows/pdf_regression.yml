@@ -1,0 +1,84 @@
+name: PDF Regression Audit
+
+# Audit hebdomadaire des 43 générateurs PDF (test_all_pdfs_inventory.py).
+# Alerte Slack si régression détectée (pages ou taille hors tolérance).
+#
+# - Déclencheurs : lundi 06h00 UTC, et push sur master touchant backend/services/*pdf*.
+# - Durée typique : ~2 min (Chromium bootstrap + rendu).
+# - Credentials : SLACK_WEBHOOK_URL (secret GitHub) pour les alertes.
+
+on:
+  schedule:
+    # Lundi 06h00 UTC (07h00 Paris été, 08h00 Paris hiver)
+    - cron: '0 6 * * 1'
+  workflow_dispatch:  # Permet un run manuel depuis l'onglet Actions
+  push:
+    branches: [master, main]
+    paths:
+      - 'backend/services/**pdf**'
+      - 'backend/services/book_engine_v2/**'
+      - 'backend/services/book_engine_shared/**'
+      - 'backend/services/natal_pdf*.py'
+      - 'backend/tests/test_all_pdfs_inventory.py'
+      - 'backend/tests/pdf_baselines.json'
+
+jobs:
+  pdf-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install Chromium (headless)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            chromium-browser \
+            poppler-utils \
+            fonts-noto-core
+          chromium-browser --version || chromium --version
+
+      - name: Install Python dependencies
+        working-directory: backend
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create /app symlink (pour les tests qui utilisent /app/...)
+        run: sudo ln -sfn "$GITHUB_WORKSPACE" /app
+
+      - name: Run PDF regression audit
+        working-directory: backend
+        env:
+          # Mocks pour éviter tout appel externe
+          MONGO_URL: mongodb://localhost:27017
+          DB_NAME: pdf_audit_ci
+          EMERGENT_LLM_KEY: ci-stub-key
+          # Flags Chromium activés
+          USE_V2_KABBALE_ENGINE: '1'
+          USE_V2_ASTROCARTO_ENGINE: '1'
+          # Chemin Chromium pour book_engine_v2
+          CHROMIUM_BIN: /usr/bin/chromium-browser
+          PDF_AUDIT_OUT_DIR: /tmp/pdf_audit_ci
+          # Webhook Slack pour alertes (secret du repo)
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          python tests/test_all_pdfs_inventory.py \
+            --compare \
+            --slack-alert
+
+      - name: Upload PDFs as artifact (en cas d'échec uniquement)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf-audit-${{ github.run_id }}
+          path: /tmp/pdf_audit_ci/
+          retention-days: 14

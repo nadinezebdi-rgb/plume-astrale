@@ -135,3 +135,12 @@
 {"ts": "2026-10-30T19:29:28.601949+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321170, "ai_planet_count": 11}
 {"ts": "2026-10-30T19:29:31.043209+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780228, "ai_planet_count": 0}
 {"ts": "2026-10-30T19:29:35.392057+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516818, "ai_planet_count": 11}
+{"ts": "2026-10-31T08:30:29.967306+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321152, "ai_planet_count": 11}
+{"ts": "2026-10-31T08:30:33.370095+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780234, "ai_planet_count": 0}
+{"ts": "2026-10-31T08:30:39.882831+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516788, "ai_planet_count": 11}
+{"ts": "2026-10-31T08:33:06.299265+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321124, "ai_planet_count": 11}
+{"ts": "2026-10-31T08:33:08.750849+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780188, "ai_planet_count": 0}
+{"ts": "2026-10-31T08:33:13.127380+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516788, "ai_planet_count": 11}
+{"ts": "2026-10-31T08:34:25.726843+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321152, "ai_planet_count": 11}
+{"ts": "2026-10-31T08:34:28.169940+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780252, "ai_planet_count": 0}
+{"ts": "2026-10-31T08:34:32.521905+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516794, "ai_planet_count": 11}
