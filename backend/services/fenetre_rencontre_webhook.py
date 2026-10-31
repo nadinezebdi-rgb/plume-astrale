@@ -1,13 +1,11 @@
-"""Webhook handler para Fenêtres de Rencontre — gera PDF e envia email."""
+"""Webhook handler para Fenêtres de Rencontre — gera PDF e envia email.
+
+Note (Feb 2026) : import de `_generate_and_email_pdf` différé à l'intérieur
+de la fonction pour casser le circular import module-level routes↔services.
+"""
 import asyncio
-import uuid
 import logging
-from config import get_settings
 from services.supabase_client import get_admin_client
-from routes.fenetre_rencontre import (
-    _calculate_advanced_windows, _generate_and_email_pdf
-)
-from services.astrology_io_service import transits_today
 from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
@@ -16,6 +14,9 @@ logger = logging.getLogger(__name__)
 async def handle_fenetre_rencontre_webhook(session_id: str):
     """Process fenetre rencontre payment → generate PDF + email in background."""
     try:
+        # Deferred import : évite le cycle module-level routes↔services
+        from routes.fenetre_rencontre import _generate_and_email_pdf
+
         sb = get_admin_client()
         
         # Recuperar transação

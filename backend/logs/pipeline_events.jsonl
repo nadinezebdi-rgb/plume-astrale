@@ -144,3 +144,6 @@
 {"ts": "2026-10-31T08:34:25.726843+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321152, "ai_planet_count": 11}
 {"ts": "2026-10-31T08:34:28.169940+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780252, "ai_planet_count": 0}
 {"ts": "2026-10-31T08:34:32.521905+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516794, "ai_planet_count": 11}
+{"ts": "2026-10-31T10:55:10.730269+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321124, "ai_planet_count": 11}
+{"ts": "2026-10-31T10:55:13.181323+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780228, "ai_planet_count": 0}
+{"ts": "2026-10-31T10:55:17.553185+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516800, "ai_planet_count": 11}

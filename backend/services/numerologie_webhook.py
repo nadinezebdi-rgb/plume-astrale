@@ -1,9 +1,11 @@
-"""Webhook handler para Numérologie — gera PDF e envia email."""
+"""Webhook handler para Numérologie — gera PDF e envia email.
+
+Note (Feb 2026) : import de `_generate_and_email_pdf` différé à l'intérieur
+de la fonction pour casser le circular import module-level routes↔services.
+"""
 import asyncio
 import logging
-from config import get_settings
 from services.supabase_client import get_admin_client
-from routes.numerologie import _generate_and_email_pdf
 from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
@@ -12,6 +14,9 @@ logger = logging.getLogger(__name__)
 async def handle_numerologie_webhook(session_id: str):
     """Process numerologie payment → generate PDF + email in background."""
     try:
+        # Deferred import : évite le cycle module-level routes↔services
+        from routes.numerologie import _generate_and_email_pdf
+
         sb = get_admin_client()
         
         # Recuperar transação

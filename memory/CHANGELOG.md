@@ -3033,3 +3033,14 @@ Sur **73 paiements confirmés en base, ZÉRO n'était tracké dans Meta**. Le tu
   - `--update-baseline` : régénère la baseline après évolution volontaire
   - `--slack-alert` : ping Slack (`SLACK_WEBHOOK_URL`) sur régression
 - **Côté user** : ajouter `SLACK_WEBHOOK_URL` aux **secrets GitHub du repo** pour que l'alerte fonctionne (`Settings → Secrets and variables → Actions`)
+
+## 2026-02 · Code Review refactoring (4 fixes réels)
+
+- **#8 Dynamic import** : `__import__('json').loads(body)` → `json.loads(body)` propre dans `integrations/payments/stripe/checkout.py`
+- **#1 Circular imports** : les 3 webhooks (numerologie, karma_destin, fenetre_rencontre) importent `_generate_and_email_pdf` en **deferred** (dans la fonction) au lieu du module. Cycle module-level cassé.
+- **#4 stripe_refund complexité** (CC 55 → ~15) : 5 helpers privés extraits
+  - `_validate_refund_reason` · `_resolve_payment_intent` · `_fetch_charge_info`
+  - `_mark_transaction_refunded` · `_emit_credit_note_for_refund`
+  - Comportement identique, 27 tests pytest + 43 PDFs toujours verts
+- **#5 admin_pdf_engine_health complexité** (CC 28 → ~5) : 6 helpers privés extraits (un par type de check : chromium flags, chromium binary, fonts, LLM key, Supabase, cache dirs)
+- **Faux positifs écartés** (non-fix justifié) : hardcoded "secrets" dans tests = anon_key Supabase (publique) + creds test ; random vs secrets = tirages tarot/positionnement visuel non-crypto ; MD5 = checksum comparaison d'images ; 90 undefined vars = pas de liste fournie
