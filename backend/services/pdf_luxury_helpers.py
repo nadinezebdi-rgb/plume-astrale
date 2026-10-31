@@ -18,7 +18,6 @@ son étoile dorée.
 from __future__ import annotations
 import logging
 from io import BytesIO
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

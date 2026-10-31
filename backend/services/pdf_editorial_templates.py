@@ -19,11 +19,10 @@ from reportlab.lib.colors import HexColor
 
 from services.pdf_theme import SafeParagraph as Paragraph
 from services.pdf_editorial_system import (
-    GOLD, CREAM, GREY_SUBTLE, GOLD_HEX, CREAM_HEX, GREY_HEX,
+    GOLD, CREAM, GREY_SUBTLE, GOLD_HEX, GREY_HEX,
     H_CHAPTER, H_PAGE, SUBTITLE, BODY, QUOTE, CALLOUT, CAPTION,
     LEAD_CHAPTER, LEAD_PAGE, LEAD_BODY, LEAD_QUOTE, LEAD_CALLOUT,
-    SP_XS, SP_S, SP_M, SP_L, SP_XL, SP_XXL,
-    styles_cormorant, styles_cormorant_italic, styles_cinzel,
+    SP_XS, SP_S, SP_M, SP_L, SP_XL, styles_cormorant, styles_cormorant_italic, styles_cinzel,
 )
 
 

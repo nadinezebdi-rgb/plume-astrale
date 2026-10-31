@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from services.supabase_client import get_admin_client
 from services.resend_service import send_email

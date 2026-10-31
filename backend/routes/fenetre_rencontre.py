@@ -20,7 +20,7 @@ from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
 from middleware.auth import get_optional_user
 from services.astrology_io_service import (
-    get_cached_or_fetch, transits_today, relationship_compatibility,
+    transits_today, relationship_compatibility,
 )
 from services.fenetre_rencontre_pdf import generate_fenetre_rencontre_pdf
 from services.pdf_delivery import update_tx_pdf_metadata, send_pdf_email

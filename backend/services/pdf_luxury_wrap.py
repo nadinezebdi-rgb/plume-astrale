@@ -12,7 +12,6 @@ la charte "livre de luxe" tout en gardant leur contenu spécifique.
 from __future__ import annotations
 import io
 import logging
-from typing import Callable
 
 from services.pdf_theme import register_fonts as _register_luxury_fonts
 

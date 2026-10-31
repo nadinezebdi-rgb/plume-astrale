@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import json
 import logging
 import os
 import subprocess
@@ -201,14 +200,8 @@ def _build_html(doc: dict[str, Any], fmt: str, share_url: str = '') -> str:
     fil = str(synth.get('fil_conducteur') or '').strip()
 
     # Timing (sec) — total 15 s
-    T_INTRO_IN  = 0.0  # titre apparaît
-    T_INTRO_HOLD = 2.4  # titre pleinement visible → fade out
     T_CARDS_START = 2.8
     T_CARDS_END = 11.0
-    T_CONSEIL_IN = 11.0
-    T_CONSEIL_HOLD = 13.3
-    T_CTA_IN = 13.3
-    T_END = 15.0
 
     # Distribution du temps par carte
     n = max(1, len(cartes))

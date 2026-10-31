@@ -10,7 +10,6 @@ Depuis Feb 2026 : ce fond partage la charte "livre prestige" (cadre or pointill�
 soleil ornemental en haut, footer éditorial) définie dans services.pdf_prestige.
 """
 from __future__ import annotations
-import random
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm

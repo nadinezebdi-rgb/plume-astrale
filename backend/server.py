@@ -20,7 +20,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 # Config + middleware
 from config import get_settings
-from middleware.auth import get_current_user, get_optional_user
+from middleware.auth import get_current_user
 
 # Services metier
 from services.daily_content import get_daily_content
@@ -30,7 +30,6 @@ from services.tarot_premium import (
     DOMAINES_QUESTIONS,
 )
 from services.natal_pdf_adapter import generate_manuscrit_pdf
-from services.mediumnite_pdf import generate_mediumnite_pdf
 from services.compatibility_pdf_generator import generate_compatibility_pdf
 from services.premium_pdf_generator import generate_premium_pdf
 from services.share_card_generator import generate_share_card
@@ -820,7 +819,6 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
         }
 
     # Sinon on interroge Stripe
-    host_url = 'https://api.stripe.com'  # base inutilisee
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url='')
     checkout_status = await stripe_checkout.get_checkout_status(session_id)
 
@@ -2435,7 +2433,6 @@ async def horoscope_prediction(payload: HoroscopeRequest):
     sign = payload.sign
     if not sign and has_birth:
         # Deduce sign from birth date
-        from datetime import date as _date
         signs_dates = [
             (((3, 21), (4, 19)), 'aries'), (((4, 20), (5, 20)), 'taurus'),
             (((5, 21), (6, 20)), 'gemini'), (((6, 21), (7, 22)), 'cancer'),
@@ -3821,7 +3818,7 @@ async def admin_capi_health(request: Request, current_user: dict = Depends(get_c
 
     import os as _os
     import uuid as _uuid
-    from services.meta_capi import send_capi_event, META_PIXEL_ID
+    from services.meta_capi import META_PIXEL_ID
     token_configured = bool(_os.environ.get('META_CAPI_ACCESS_TOKEN'))
     test_code = _os.environ.get('META_CAPI_TEST_CODE')
     if not token_configured:

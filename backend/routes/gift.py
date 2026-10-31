@@ -11,7 +11,6 @@ avec le lien vers la page produit à payer normalement + mention "cadeau".
 """
 from __future__ import annotations
 import logging, os, time
-from datetime import datetime, timezone
 from html import escape
 from typing import Dict
 

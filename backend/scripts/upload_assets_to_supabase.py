@@ -5,7 +5,6 @@ Idempotent : reuploade avec upsert=true.
 Sortie : liste des URLs publiques ecrite dans /app/backend/assets/library/manifest_supabase.json
 """
 from __future__ import annotations
-import os
 import sys
 import json
 import time

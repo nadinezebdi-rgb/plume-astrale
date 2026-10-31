@@ -1,6 +1,6 @@
 """Routes /api/synastrie/* — Achat haut-ticket 49€ + PDF + email."""
 import logging
-from typing import Any, Dict, Optional
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field

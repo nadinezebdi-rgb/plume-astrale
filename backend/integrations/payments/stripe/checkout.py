@@ -1,7 +1,8 @@
 """Remplacement natif de emergentintegrations.payments.stripe.checkout"""
+import json
 import stripe
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 
 @dataclass
@@ -94,7 +95,7 @@ class StripeCheckout:
         webhook_secret = None  # optionnel
         try:
             event = stripe.Webhook.construct_event(body, signature, webhook_secret) if webhook_secret else stripe.Event.construct_from(
-                __import__('json').loads(body), stripe.api_key
+                json.loads(body), stripe.api_key
             )
             return {"event_type": event["type"], "data": event["data"]["object"]}
         except Exception as e:

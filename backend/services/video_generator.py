@@ -19,9 +19,7 @@ import os
 import random
 import shutil
 import subprocess
-import tempfile
 from pathlib import Path
-from typing import Iterable
 
 import numpy as np
 import requests

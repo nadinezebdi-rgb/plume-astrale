@@ -3,7 +3,6 @@ Generateur PDF Premium — Experience guidee en 5 etapes
 Design violet/dore coherent avec l'identite Plume Astrale
 """
 import io
-import random
 from datetime import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm

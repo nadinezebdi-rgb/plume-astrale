@@ -16,7 +16,6 @@ identiques d'une requête à l'autre → pas besoin de régénérer).
 """
 from __future__ import annotations
 from io import BytesIO
-from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 import logging

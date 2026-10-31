@@ -29,7 +29,7 @@ from typing import Optional
 from datetime import datetime, timezone
 
 import stripe
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
 from config import get_settings

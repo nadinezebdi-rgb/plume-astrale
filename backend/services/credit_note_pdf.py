@@ -15,11 +15,9 @@ Pièce jointe au mail de notification au client, nom :
 from __future__ import annotations
 
 import io
-import os
 from datetime import datetime
 from typing import Optional
 
-from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm

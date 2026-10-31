@@ -3,21 +3,13 @@ Endpoints pour la compatibilité amoureuse et le texte mystérieux.
 - /api/couple/mystery - Génère un texte mystérieux basé sur les prénoms (gratuit, OpenAI)
 - /api/couple/compatibility - Étude complète de compatibilité (payant, AstrologyIO)
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional
 import logging
 
-from middleware.auth import get_optional_user
 from services.couple_mystery_service import (
-    generate_couple_mystery_text,
     generate_couple_detailed_analysis,
     get_fallback_text
-)
-from services import wallet_service
-from services.compatibility_pdf_generator import generate_compatibility_pdf
-from services.astrology_io_service import (
-    make_birth_data, synastry_chart, relationship_compatibility_score
 )
 
 logger = logging.getLogger(__name__)

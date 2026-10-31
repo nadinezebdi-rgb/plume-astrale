@@ -13,7 +13,6 @@ convertit + ajoute deux fonctions supplémentaires :
 from __future__ import annotations
 
 import logging
-import math
 from typing import Any
 
 from .vendor.natal_wheel_kit import build_wheel, GLYPH

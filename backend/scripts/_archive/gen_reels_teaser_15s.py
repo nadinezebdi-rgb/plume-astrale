@@ -34,7 +34,7 @@ def esc(s):
 
 
 def drawtext(text, size, color, box_color, y_ratio=0.70):
-    lines = text.split('\n')
+    text.split('\n')
     # Combine into single drawtext with line breaks if needed
     e = esc(text)
     return (f"drawtext=text='{e}':fontfile={FONT}:"

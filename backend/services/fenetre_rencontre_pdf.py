@@ -6,7 +6,6 @@ Images cosmiques + calculs détaillés + conseils d'activation.
 from __future__ import annotations
 from io import BytesIO
 from typing import Any, Dict, List, Optional
-import requests
 from urllib.request import urlopen
 
 from reportlab.lib import colors
@@ -16,8 +15,7 @@ from reportlab.lib.units import cm
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, Image, PageTemplate, Frame,
 )
-from reportlab.pdfgen import canvas
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 
 from services.pdf_bg import make_bg_canvas
 from services.pdf_theme import register_fonts as _register_luxury_fonts

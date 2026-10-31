@@ -34,8 +34,7 @@ from __future__ import annotations
 import logging
 from io import BytesIO
 from typing import Callable, Dict, Optional
-from reportlab.platypus import SimpleDocTemplate, Flowable, PageBreak
-from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Flowable
 
 logger = logging.getLogger(__name__)
 

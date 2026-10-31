@@ -19,7 +19,6 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse

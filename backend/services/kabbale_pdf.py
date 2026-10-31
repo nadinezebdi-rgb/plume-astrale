@@ -13,18 +13,16 @@ Structure du document (~15 pages) :
   15. Rituels d'integration + signature Solena
 """
 from __future__ import annotations
-from io import BytesIO
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.pdfgen import canvas
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Frame, PageTemplate, Image,
+    Paragraph, Spacer, PageBreak, Image,
 )
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 
 from services import library_images as libimg
 
@@ -460,7 +458,6 @@ def _generate_kabbale_impl(
         except Exception:
             birth_fr = birth_date_iso
 
-    buffer = BytesIO()
     styles = _make_styles()
 
     # Extraire la planète dominante depuis les Sephiroth

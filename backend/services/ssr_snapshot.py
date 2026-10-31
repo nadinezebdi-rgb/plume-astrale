@@ -21,7 +21,6 @@ import asyncio
 import logging
 import os
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger(__name__)

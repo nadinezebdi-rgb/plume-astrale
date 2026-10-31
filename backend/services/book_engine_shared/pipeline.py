@@ -24,7 +24,6 @@ Idempotent : ne relance pas la génération si `pdf_status=success` déjà.
 from __future__ import annotations
 import asyncio
 import logging
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -33,7 +32,6 @@ from services import astrology_io_service as aio
 from services.supabase_client import get_admin_client
 from .domain import (
     BirthData, Chapter, ChapterBlock, BlockKind, Edition,
-    Manuscript,
 )
 from .prose_generator import generate_chapter_iv_love
 from .registry import SOCLE, all_chapters_for_manuscript

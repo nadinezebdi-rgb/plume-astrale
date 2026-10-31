@@ -144,3 +144,15 @@
 {"ts": "2026-10-31T08:34:25.726843+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321152, "ai_planet_count": 11}
 {"ts": "2026-10-31T08:34:28.169940+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780252, "ai_planet_count": 0}
 {"ts": "2026-10-31T08:34:32.521905+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516794, "ai_planet_count": 11}
+{"ts": "2026-10-31T10:55:10.730269+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321124, "ai_planet_count": 11}
+{"ts": "2026-10-31T10:55:13.181323+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780228, "ai_planet_count": 0}
+{"ts": "2026-10-31T10:55:17.553185+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516800, "ai_planet_count": 11}
+{"ts": "2026-10-31T10:59:19.288238+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321158, "ai_planet_count": 11}
+{"ts": "2026-10-31T10:59:21.721262+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780234, "ai_planet_count": 0}
+{"ts": "2026-10-31T10:59:26.099474+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516760, "ai_planet_count": 11}
+{"ts": "2026-10-31T11:01:17.541714+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321158, "ai_planet_count": 11}
+{"ts": "2026-10-31T11:01:19.995360+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780216, "ai_planet_count": 0}
+{"ts": "2026-10-31T11:01:24.378586+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516760, "ai_planet_count": 11}
+{"ts": "2026-10-31T11:02:05.566767+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 13321146, "ai_planet_count": 11}
+{"ts": "2026-10-31T11:02:08.015330+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 6780228, "ai_planet_count": 0}
+{"ts": "2026-10-31T11:02:12.378900+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 12516760, "ai_planet_count": 11}

@@ -13,7 +13,7 @@ n'interrompt jamais le flow d'envoi.
 """
 from __future__ import annotations
 import logging
-from typing import Any, Optional
+from typing import Optional
 
 from services.supabase_client import get_admin_client
 

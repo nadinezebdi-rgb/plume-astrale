@@ -1,5 +1,5 @@
 """Débloque une session PDF Theme Natal stuck en pending → relance la génération."""
-import asyncio, sys, os
+import asyncio, sys
 sys.path.insert(0, '/app/backend')
 from dotenv import load_dotenv
 load_dotenv('/app/backend/.env')

@@ -13,7 +13,7 @@ import io
 import logging
 import os
 import re
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 

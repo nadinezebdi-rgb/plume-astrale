@@ -24,9 +24,9 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image,
+    Paragraph, Spacer, PageBreak, Image,
 )
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER
 
 logger = logging.getLogger(__name__)
 
@@ -127,8 +127,6 @@ def _svg_to_png_bytes(svg_str: str) -> Optional[bytes]:
 
 def _ornament(story, kind: str = 'star'):
     """Séparateur décoratif discret : petit motif doré centré."""
-    from reportlab.platypus import Table, TableStyle
-    from reportlab.lib import colors as _c
     from services.pdf_theme import register_fonts as _register_fonts
     _register_fonts()  # garantit la police `Symbol` pour les glyphes ornementaux
     glyph = {'star': '✦', 'diamond': '◆', 'dot': '·'}.get(kind, '✦')
@@ -483,7 +481,6 @@ def generate_astrocartographie_pdf(
         except Exception:
             birth_fr = birth_date_iso
 
-    buffer = BytesIO()
     styles = _make_styles()
 
     # ─── Story builder appelé en 2 passes (pour numérotation TOC réelle) ───

@@ -9,7 +9,6 @@ Zero appel réseau : la fonction attend les données du tirage en entrée.
 from __future__ import annotations
 import io
 from pathlib import Path
-from typing import Any
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -234,7 +233,7 @@ def render_shared_tirage_png(tirage: dict, share_url: str = '', fmt: str = 'post
 
     # Positions verticales : échelle depuis le layout 'post' (1350) vers la hauteur demandée.
     # Le ratio h/1350 permet de garder le même design en Story (plus d'air en haut/bas).
-    scale_y = HEIGHT_LOCAL / 1350
+    HEIGHT_LOCAL / 1350
     # Pour Story, on ajoute de l'air supplémentaire autour du contenu principal.
     y_offset = int((HEIGHT_LOCAL - 1350) / 2) if is_story else 0
 

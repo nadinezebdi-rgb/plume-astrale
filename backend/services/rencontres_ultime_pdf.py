@@ -24,7 +24,6 @@ Design : style "Mix" — couverture sombre doree, pages interieures fond creme.
 from __future__ import annotations
 import io
 import os
-import calendar
 from datetime import datetime, timedelta, timezone
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm

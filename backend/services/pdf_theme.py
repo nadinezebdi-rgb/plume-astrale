@@ -14,14 +14,13 @@ Usage :
 """
 from __future__ import annotations
 import logging
-import os
 import re
 from pathlib import Path
 from reportlab.platypus import Paragraph
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
@@ -60,6 +59,26 @@ FONTS_DIR = Path(__file__).resolve().parent.parent / 'assets' / 'fonts'
 _FONTS_REGISTERED = False
 
 
+def _register_font_aliases(candidates: dict[str, list[str]]) -> None:
+    # Alias « Cormorant Garamond » : les pages « livre » (pdf_book_pages,
+    # pdf_editorial_*) demandent ce nom, jamais enregistré jusqu'ici → elles
+    # retombaient en Times alors que les pages planètes utilisaient Cormorant,
+    # d'où une typographie incohérente dans un même PDF.
+    for alias, source in (
+        ('Cormorant Garamond', 'Cormorant'),
+        ('Cormorant Garamond Italic', 'Cormorant-Italic'),
+        ('Cormorant Garamond Bold', 'Cormorant-Bold'),
+    ):
+        try:
+            if _is_registered(source) and not _is_registered(alias):
+                font_file = next(
+                    (FONTS_DIR / f for f in candidates[source] if (FONTS_DIR / f).exists()), None)
+                if font_file:
+                    pdfmetrics.registerFont(TTFont(alias, str(font_file)))
+        except Exception as e:
+            logger.warning(f"[pdf_theme] alias {alias} failed: {e}")
+
+
 def register_fonts() -> bool:
     """Enregistre Cinzel + Cormorant Garamond dans ReportLab (idempotent).
 
@@ -95,23 +114,7 @@ def register_fonts() -> bool:
                 except Exception as e:
                     logger.warning(f"[pdf_theme] failed to load {path}: {e}")
 
-    # Alias « Cormorant Garamond » : les pages « livre » (pdf_book_pages,
-    # pdf_editorial_*) demandent ce nom, jamais enregistré jusqu'ici → elles
-    # retombaient en Times alors que les pages planètes utilisaient Cormorant,
-    # d'où une typographie incohérente dans un même PDF.
-    for alias, source in (
-        ('Cormorant Garamond', 'Cormorant'),
-        ('Cormorant Garamond Italic', 'Cormorant-Italic'),
-        ('Cormorant Garamond Bold', 'Cormorant-Bold'),
-    ):
-        try:
-            if _is_registered(source) and not _is_registered(alias):
-                font_file = next(
-                    (FONTS_DIR / f for f in candidates[source] if (FONTS_DIR / f).exists()), None)
-                if font_file:
-                    pdfmetrics.registerFont(TTFont(alias, str(font_file)))
-        except Exception as e:
-            logger.warning(f"[pdf_theme] alias {alias} failed: {e}")
+    _register_font_aliases(candidates)
     # Familles : sans elles, <b>/<i> dans un Paragraph lèvent une erreur de mapping.
     for family, normal, bold, italic in (
         ('Cormorant', 'Cormorant', 'Cormorant-Bold', 'Cormorant-Italic'),
@@ -200,7 +203,7 @@ def ornament_safe(text: str) -> str:
     out = []
     has_ornament_font = _is_registered('OrnamentSerif')
     in_ornament_font = False
-    for part in re.split(r'(<[^>]+>)', text):
+    for part in re.split(r'(<[^<>]*>)', text):
         if part.startswith('<'):
             low = part.lower()
             if 'name="ornamentserif"' in low or "name='ornamentserif'" in low:
@@ -231,7 +234,7 @@ def make_styles() -> dict[str, ParagraphStyle]:
     register_fonts()
     body_font = font('Cormorant', 'Helvetica')
     body_italic = font('Cormorant-Italic', 'Helvetica-Oblique')
-    body_bold = font('Cormorant-Bold', 'Helvetica-Bold')
+    font('Cormorant-Bold', 'Helvetica-Bold')
     display_font = font('Cinzel', 'Helvetica')
     display_bold = font('Cinzel-Bold', 'Helvetica-Bold')
 

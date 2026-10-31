@@ -18,10 +18,8 @@ Flow produit (2026-02-27) :
    ces étapes en atelier. Le logiciel s'arrête à `status='approved'`.
 """
 from __future__ import annotations
-import asyncio
 import logging
 import os
-from datetime import datetime, timezone
 from typing import Any, Optional
 
 import stripe

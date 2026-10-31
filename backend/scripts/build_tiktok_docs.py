@@ -6,16 +6,15 @@ Génère 2 PDFs de démonstration pour le tournage TikTok :
 Sortie : /app/frontend/public/marketing/*.pdf
 """
 from __future__ import annotations
-import io
 import sys
-from datetime import datetime, date
+from datetime import date
 from pathlib import Path
 
 # Ensure backend imports work
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm, mm
+from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import (
@@ -25,8 +24,8 @@ from reportlab.platypus import (
 from reportlab.lib.colors import HexColor
 
 from services.pdf_theme import (
-    register_fonts, make_styles, font,
-    GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED, NIGHT, NIGHT_SOFT,
+    font,
+    GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED,
 )
 from services.pdf_luxury_theme import (
     luxury_bg, luxury_styles, illustration_url, _dl_image,

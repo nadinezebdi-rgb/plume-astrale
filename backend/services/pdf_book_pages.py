@@ -23,7 +23,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.colors import HexColor
 
 from services.pdf_luxury_theme import (
-    GOLD_HEX, CREAM_HEX, LAVENDER_HEX,
+    GOLD_HEX, CREAM_HEX,
 )
 from services.pdf_theme import GOLD, CREAM, LAVENDER, MUTED, font
 from services import library_images as libimg

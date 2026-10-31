@@ -22,13 +22,12 @@ hors FR voient leur prix recalculé en live via `/api/natal-print-bump/quote`.
 from __future__ import annotations
 import logging
 import os
-import secrets
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import stripe
 
-from services.lulu_client import quote_print_job, is_mock
+from services.lulu_client import quote_print_job
 from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)

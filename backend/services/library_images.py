@@ -15,7 +15,6 @@ en cas d'erreur (les callers doivent gérer le None → skip image sans crash).
 from __future__ import annotations
 import json
 import logging
-import os
 import re
 from pathlib import Path
 from typing import Optional

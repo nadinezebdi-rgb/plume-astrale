@@ -49,13 +49,12 @@ async def astrosexo_personal(payload: AstroSexoRequest):
 
     # Récupère l'analyse relationnelle (aio.love_languages est déjà @fr_polish)
     love_data = None
-    perso_data = None
     try:
         love_data = await aio.love_languages(bd, name=first_name, language='fr')
     except Exception as e:
         logger.warning(f'[astrosexo] love_languages failed: {e}')
     try:
-        perso_data = await aio.personality_analysis(bd, name=first_name, language='fr')
+        await aio.personality_analysis(bd, name=first_name, language='fr')
     except Exception as e:
         logger.warning(f'[astrosexo] personality failed: {e}')
 

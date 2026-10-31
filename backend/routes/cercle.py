@@ -9,7 +9,7 @@ Toutes les routes sont :
 """
 import os
 import logging
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field

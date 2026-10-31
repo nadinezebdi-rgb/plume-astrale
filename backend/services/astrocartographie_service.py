@@ -3,7 +3,6 @@ Orchestrateur post-paiement pour le pack "astrocartographie" (49 EUR).
 Fetch /astrocartography/map + /location-analysis (×3) + génère bonus IA + PDF + email.
 """
 from __future__ import annotations
-import asyncio
 import base64
 import logging
 import os

@@ -354,31 +354,19 @@ class RefundPayload(BaseModel):
 
 
 @router.post('/stripe-refund')
-async def stripe_refund(payload: RefundPayload, _admin: dict = Depends(require_admin)) -> Dict[str, Any]:
-    """Rembourse 100 % d'un paiement Stripe (ciblé par session_id ou payment_intent).
+# ───── Helpers extraits de stripe_refund (2026-02 · code review) ─────
+def _validate_refund_reason(reason: Optional[str]) -> str:
+    """Normalise + valide la raison du refund. Lève 400 si invalide."""
+    allowed = {'requested_by_customer', 'duplicate', 'fraudulent'}
+    r = (reason or 'requested_by_customer').strip()
+    if r not in allowed:
+        raise HTTPException(400, f'reason invalide — valeurs permises : {sorted(allowed)}')
+    return r
 
-    - `dry_run=True` (défaut) : retourne les infos du charge sans rembourser.
-    - `dry_run=False` : exécute `stripe.Refund.create(payment_intent=...)`.
-    - `reason` doit être parmi : `requested_by_customer`, `duplicate`, `fraudulent`.
-    - Marque la ligne `payment_transactions` associée avec `metadata.refunded_at`
-      pour cohérence avec le dashboard refund_alert.
 
-    Idempotent côté Stripe : si un refund existe déjà pour le PaymentIntent,
-    Stripe retourne 400 — on le remonte proprement.
-    """
-    api_key = os.environ.get('STRIPE_API_KEY', '').strip()
-    if not api_key:
-        raise HTTPException(500, 'STRIPE_API_KEY non configuré')
-    stripe.api_key = api_key
-
-    allowed_reasons = {'requested_by_customer', 'duplicate', 'fraudulent'}
-    reason = (payload.reason or 'requested_by_customer').strip()
-    if reason not in allowed_reasons:
-        raise HTTPException(400, f'reason invalide — valeurs permises : {sorted(allowed_reasons)}')
-
+def _resolve_payment_intent(payload: 'RefundPayload') -> tuple[str, Optional[Dict[str, Any]]]:
+    """Résout session_id → payment_intent via Stripe. Retourne (pi_id, session_dict)."""
     pi_id = (payload.payment_intent or '').strip() or None
-
-    # Résolution : session_id → payment_intent
     session_dict: Optional[Dict[str, Any]] = None
     if payload.session_id:
         try:
@@ -387,19 +375,20 @@ async def stripe_refund(payload: RefundPayload, _admin: dict = Depends(require_a
             pi_id = pi_id or session_dict.get('payment_intent')
         except Exception as e:
             raise HTTPException(404, f'session Stripe introuvable : {e}')
-
     if not pi_id:
         raise HTTPException(400, 'session_id OU payment_intent est obligatoire')
+    return pi_id, session_dict
 
-    # Infos sur le charge pour le dry-run / confirmation
-    charge_info: Dict[str, Any] = {}
+
+def _fetch_charge_info(pi_id: str) -> Dict[str, Any]:
+    """Récupère les infos du charge associé au PaymentIntent (pour dry-run / confirmation)."""
     try:
         pi = stripe.PaymentIntent.retrieve(pi_id, expand=['latest_charge'])
         pi_dict = pi.to_dict() if hasattr(pi, 'to_dict') else dict(pi)
         latest = pi_dict.get('latest_charge') or {}
         if hasattr(latest, 'to_dict'):
             latest = latest.to_dict()
-        charge_info = {
+        return {
             'payment_intent': pi_id,
             'amount': (pi_dict.get('amount') or 0) / 100,
             'currency': pi_dict.get('currency'),
@@ -412,6 +401,91 @@ async def stripe_refund(payload: RefundPayload, _admin: dict = Depends(require_a
         }
     except Exception as e:
         raise HTTPException(404, f'PaymentIntent introuvable : {e}')
+
+
+def _mark_transaction_refunded(sid: Optional[str], reason: str, refund_dict: Dict[str, Any]) -> None:
+    """Marque la ligne payment_transactions avec refunded_at (best-effort, silencieux)."""
+    try:
+        if not sid:
+            return
+        sb = get_admin_client()
+        now_iso = datetime.now(timezone.utc).isoformat()
+        r = sb.table('payment_transactions').select('metadata, session_id').eq('session_id', sid).limit(1).execute()
+        if r.data:
+            md = (r.data[0] or {}).get('metadata') or {}
+            md['refunded_at'] = now_iso
+            md['refund_reason'] = reason
+            md['refund_id'] = refund_dict.get('id')
+            sb.table('payment_transactions').update({'metadata': md}).eq('session_id', sid).execute()
+    except Exception as e:
+        logger.info(f'[stripe_refund] marquage DB skip: {e}')
+
+
+async def _emit_credit_note_for_refund(
+    sid: Optional[str], charge_info: Dict[str, Any],
+    session_dict: Optional[Dict[str, Any]], refund_dict: Dict[str, Any],
+    reason: str, note: Optional[str],
+) -> Dict[str, Any]:
+    """Génère l'avoir PDF + envoie au client. Idempotent par refund_id."""
+    try:
+        from services.credit_note_delivery import send_credit_note_for_refund
+        sb = get_admin_client()
+        product_label = 'Produit Plume Astrale'
+        pack_id: Optional[str] = None
+        try:
+            if sid:
+                r2 = sb.table('payment_transactions').select('pack_id, metadata').eq('session_id', sid).limit(1).execute()
+                if r2.data:
+                    pack_id = (r2.data[0] or {}).get('pack_id')
+                    md2 = (r2.data[0] or {}).get('metadata') or {}
+                    product_label = md2.get('product_label') or md2.get('kind') or pack_id or product_label
+        except Exception:
+            pass
+
+        customer_email = charge_info.get('customer_email') or (session_dict or {}).get('customer_email')
+        if not customer_email:
+            return {'ok': False, 'reason': 'no_customer_email'}
+        return await send_credit_note_for_refund(
+            refund_id=refund_dict.get('id'),
+            session_id=sid,
+            customer_email=customer_email,
+            customer_name=(session_dict or {}).get('customer_details', {}).get('name') if session_dict else None,
+            amount_cents=int((refund_dict.get('amount') or 0)),
+            currency=(refund_dict.get('currency') or 'eur').upper(),
+            product_label=product_label,
+            reason=reason,
+            note=note,
+            refunded_at=datetime.now(timezone.utc),
+        )
+    except Exception as e:
+        logger.warning(f'[stripe_refund] credit note skip: {e}')
+        return {'ok': False, 'reason': f'exception: {e}'}
+
+
+async def stripe_refund(payload: RefundPayload, _admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Rembourse 100 % d'un paiement Stripe (ciblé par session_id ou payment_intent).
+
+    - `dry_run=True` (défaut) : retourne les infos du charge sans rembourser.
+    - `dry_run=False` : exécute `stripe.Refund.create(payment_intent=...)`.
+    - `reason` doit être parmi : `requested_by_customer`, `duplicate`, `fraudulent`.
+    - Marque la ligne `payment_transactions` associée avec `metadata.refunded_at`
+      pour cohérence avec le dashboard refund_alert.
+
+    Idempotent côté Stripe : si un refund existe déjà pour le PaymentIntent,
+    Stripe retourne 400 — on le remonte proprement.
+
+    Refacto 2026-02 (code review) : logique extraite en 4 helpers privés
+    (`_validate_refund_reason`, `_resolve_payment_intent`, `_fetch_charge_info`,
+    `_mark_transaction_refunded`, `_emit_credit_note_for_refund`).
+    """
+    api_key = os.environ.get('STRIPE_API_KEY', '').strip()
+    if not api_key:
+        raise HTTPException(500, 'STRIPE_API_KEY non configuré')
+    stripe.api_key = api_key
+
+    reason = _validate_refund_reason(payload.reason)
+    pi_id, session_dict = _resolve_payment_intent(payload)
+    charge_info = _fetch_charge_info(pi_id)
 
     if payload.dry_run:
         return {
@@ -447,60 +521,11 @@ async def stripe_refund(payload: RefundPayload, _admin: dict = Depends(require_a
         logger.warning(f'[stripe_refund] fail pi={pi_id}: {e}')
         raise HTTPException(400, f'Stripe refund rejeté : {e.user_message or str(e)}')
 
-    # Marque la ligne payment_transactions associée (best-effort)
-    try:
-        sb = get_admin_client()
-        sid = payload.session_id or (session_dict or {}).get('id')
-        if sid:
-            now_iso = datetime.now(timezone.utc).isoformat()
-            r = sb.table('payment_transactions').select('metadata, session_id').eq('session_id', sid).limit(1).execute()
-            if r.data:
-                md = (r.data[0] or {}).get('metadata') or {}
-                md['refunded_at'] = now_iso
-                md['refund_reason'] = reason
-                md['refund_id'] = refund_dict.get('id')
-                sb.table('payment_transactions').update({'metadata': md}).eq('session_id', sid).execute()
-    except Exception as e:
-        logger.info(f'[stripe_refund] marquage DB skip: {e}')
-
-    # ─── AUDIT (2026-10-30 · Nao) ───────────────────────────────────
-    # Génère l'avoir PDF + envoie au client par email (best-effort).
-    # Idempotent par refund_id : rejouer n'alloue pas un nouveau numéro.
-    credit_note_report: Dict[str, Any] = {'ok': False, 'reason': 'not_attempted'}
-    try:
-        from services.credit_note_delivery import send_credit_note_for_refund
-        # Résolution produit depuis payment_transactions / session Stripe
-        product_label = 'Produit Plume Astrale'
-        pack_id: Optional[str] = None
-        try:
-            if sid:
-                r2 = sb.table('payment_transactions').select('pack_id, metadata').eq('session_id', sid).limit(1).execute()
-                if r2.data:
-                    pack_id = (r2.data[0] or {}).get('pack_id')
-                    md2 = (r2.data[0] or {}).get('metadata') or {}
-                    product_label = md2.get('product_label') or md2.get('kind') or pack_id or product_label
-        except Exception:
-            pass
-
-        customer_email = charge_info.get('customer_email') or (session_dict or {}).get('customer_email')
-        if customer_email:
-            credit_note_report = await send_credit_note_for_refund(
-                refund_id=refund_dict.get('id'),
-                session_id=sid,
-                customer_email=customer_email,
-                customer_name=(session_dict or {}).get('customer_details', {}).get('name') if session_dict else None,
-                amount_cents=int((refund_dict.get('amount') or 0)),
-                currency=(refund_dict.get('currency') or 'eur').upper(),
-                product_label=product_label,
-                reason=reason,
-                note=payload.note,
-                refunded_at=datetime.now(timezone.utc),
-            )
-        else:
-            credit_note_report = {'ok': False, 'reason': 'no_customer_email'}
-    except Exception as e:
-        logger.warning(f'[stripe_refund] credit note skip: {e}')
-        credit_note_report = {'ok': False, 'reason': f'exception: {e}'}
+    sid = payload.session_id or (session_dict or {}).get('id')
+    _mark_transaction_refunded(sid, reason, refund_dict)
+    credit_note_report = await _emit_credit_note_for_refund(
+        sid, charge_info, session_dict, refund_dict, reason, payload.note,
+    )
 
     return {
         'dry_run': False,

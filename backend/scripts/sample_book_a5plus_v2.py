@@ -30,7 +30,6 @@ Structure 20 pages :
   20. Sphère Kéter — la couronne
 """
 from __future__ import annotations
-import io
 import sys
 from pathlib import Path
 
@@ -44,12 +43,12 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import (
     BaseDocTemplate, PageTemplate, Frame,
     Paragraph, Spacer, PageBreak, Image as RLImage,
-    Table, TableStyle, KeepTogether, NextPageTemplate,
+    Table, TableStyle, NextPageTemplate,
 )
 
 from services.pdf_theme import (
     register_fonts, font,
-    GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED, NIGHT, NIGHT_SOFT,
+    GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED, NIGHT,
 )
 
 register_fonts()

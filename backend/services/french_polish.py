@@ -13,7 +13,7 @@ import json
 import logging
 import os
 import re
-from typing import Any, Optional
+from typing import Any
 
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from services.supabase_client import get_admin_client

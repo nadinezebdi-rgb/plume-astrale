@@ -6,10 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-import random
-import os
 
-from services import astrology_io_service as aio
 from services.numerology_service import chemin_de_vie as _chemin_de_vie_iso
 from services.supabase_client import get_admin_client
 

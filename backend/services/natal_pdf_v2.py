@@ -12,20 +12,19 @@ Refactor 2026-02-22 :
     natal_ai_enrichment.enrich_natal_ultra OU fallback statique par signe).
 """
 from __future__ import annotations
-import io
 from typing import Optional
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from services.pdf_luxury_theme import (
-    build_luxury_doc, luxury_styles, luxury_bg,
-    cover_page, opening_page, chapter_illustration, chart_wheel_page,
-    planet_dense_page, photos_grid_2x2, emotional_ending,
+    luxury_styles, luxury_bg,
+    cover_page, chapter_illustration, chart_wheel_page,
+    planet_dense_page, emotional_ending,
 )
 from services.pdf_book_pages import (
-    half_title_page, copyright_page, dedication_page, table_of_contents_page,
-    part_divider_page, element_dominant_page, modality_dominant_page,
+    copyright_page, table_of_contents_page,
+    element_dominant_page, modality_dominant_page,
     trio_cross_analysis_page, aspects_group_page, house_detail_page,
-    year_ahead_page, colophon_page,
+    colophon_page,
     # Nouvelles pages — refonte "Thème Natal 50 pages" (Lot 2 — Feb 2026)
     method_intro_page, birth_data_page, chart_legend_page, personal_synthesis_page,
     transversal_synthesis_page, conclusion_page, glossary_technical_page,
@@ -284,7 +283,6 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
     book_data : dict retourné par natal_book_enrichment.enrich_book_chapters
                 — si présent, ajoute front matter + parties + maisons + épilogue.
     referral_code / referral_link : injectés dans le colophon final."""
-    buf = io.BytesIO()
     styles = luxury_styles()
 
     from services.pdf_multipass_toc import build_with_toc, chapter_marker
