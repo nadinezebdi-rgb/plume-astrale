@@ -59,6 +59,26 @@ FONTS_DIR = Path(__file__).resolve().parent.parent / 'assets' / 'fonts'
 _FONTS_REGISTERED = False
 
 
+def _register_font_aliases(candidates: dict[str, list[str]]) -> None:
+    # Alias « Cormorant Garamond » : les pages « livre » (pdf_book_pages,
+    # pdf_editorial_*) demandent ce nom, jamais enregistré jusqu'ici → elles
+    # retombaient en Times alors que les pages planètes utilisaient Cormorant,
+    # d'où une typographie incohérente dans un même PDF.
+    for alias, source in (
+        ('Cormorant Garamond', 'Cormorant'),
+        ('Cormorant Garamond Italic', 'Cormorant-Italic'),
+        ('Cormorant Garamond Bold', 'Cormorant-Bold'),
+    ):
+        try:
+            if _is_registered(source) and not _is_registered(alias):
+                font_file = next(
+                    (FONTS_DIR / f for f in candidates[source] if (FONTS_DIR / f).exists()), None)
+                if font_file:
+                    pdfmetrics.registerFont(TTFont(alias, str(font_file)))
+        except Exception as e:
+            logger.warning(f"[pdf_theme] alias {alias} failed: {e}")
+
+
 def register_fonts() -> bool:
     """Enregistre Cinzel + Cormorant Garamond dans ReportLab (idempotent).
 
@@ -94,23 +114,7 @@ def register_fonts() -> bool:
                 except Exception as e:
                     logger.warning(f"[pdf_theme] failed to load {path}: {e}")
 
-    # Alias « Cormorant Garamond » : les pages « livre » (pdf_book_pages,
-    # pdf_editorial_*) demandent ce nom, jamais enregistré jusqu'ici → elles
-    # retombaient en Times alors que les pages planètes utilisaient Cormorant,
-    # d'où une typographie incohérente dans un même PDF.
-    for alias, source in (
-        ('Cormorant Garamond', 'Cormorant'),
-        ('Cormorant Garamond Italic', 'Cormorant-Italic'),
-        ('Cormorant Garamond Bold', 'Cormorant-Bold'),
-    ):
-        try:
-            if _is_registered(source) and not _is_registered(alias):
-                font_file = next(
-                    (FONTS_DIR / f for f in candidates[source] if (FONTS_DIR / f).exists()), None)
-                if font_file:
-                    pdfmetrics.registerFont(TTFont(alias, str(font_file)))
-        except Exception as e:
-            logger.warning(f"[pdf_theme] alias {alias} failed: {e}")
+    _register_font_aliases(candidates)
     # Familles : sans elles, <b>/<i> dans un Paragraph lèvent une erreur de mapping.
     for family, normal, bold, italic in (
         ('Cormorant', 'Cormorant', 'Cormorant-Bold', 'Cormorant-Italic'),
