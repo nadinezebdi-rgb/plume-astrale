@@ -3018,3 +3018,18 @@ Sur **73 paiements confirmés en base, ZÉRO n'était tracké dans Meta**. Le tu
 - `.github/workflows/ci.yml` : `--max-warnings 100` → **`--max-warnings 0`**
 - Résultat : `npx eslint src` passe en **0 erreur, 0 warning**
 - Smoke test home desktop OK, aucun régression visuelle
+
+## 2026-02 · CI hebdomadaire PDF Regression
+
+- **Nouveau job GitHub Actions** `.github/workflows/pdf_regression.yml` :
+  - Déclencheurs : cron lundi 06h UTC, push sur `backend/services/*pdf*`, dispatch manuel
+  - Installe Chromium + poppler-utils + fonts Noto, lance les 43 tests PDF
+  - Exit 1 + alerte Slack si régression (page ou taille > tolérance)
+  - Artifact des PDFs uploadé en cas d'échec (14 jours)
+- **`tests/pdf_baselines.json`** : baseline des 43 PDFs (pages + taille KB)
+  - Tolérance : ±2 pages, ±25 % taille (ajustable dans `_meta`)
+- **`test_all_pdfs_inventory.py`** étendu : 3 modes CLI
+  - `--compare` : compare à la baseline, exit 1 si régression
+  - `--update-baseline` : régénère la baseline après évolution volontaire
+  - `--slack-alert` : ping Slack (`SLACK_WEBHOOK_URL`) sur régression
+- **Côté user** : ajouter `SLACK_WEBHOOK_URL` aux **secrets GitHub du repo** pour que l'alerte fonctionne (`Settings → Secrets and variables → Actions`)
