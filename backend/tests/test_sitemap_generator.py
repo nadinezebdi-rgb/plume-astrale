@@ -86,8 +86,15 @@ def test_sitemap_excludes_redirect_sources():
 
 
 def test_sitemap_contains_canonical_services():
-    """Les /services/* canoniques doivent être présents."""
+    """Les /services/* canoniques doivent être présents.
+
+    AUDIT P1-2 (2026-10-30) : /services/theme-natal (noindex) et
+    /services/numerologie (canonique /numerologie-pdf) sont volontairement
+    exclus du sitemap — voir EXCLUDED_FROM_SITEMAP dans frontend/src/config/seoRoutes.js.
+    """
     xml = build_sitemap()
-    for svc in ['/services/theme-natal', '/services/tarot', '/services/numerologie',
-                '/services/compatibilite', '/services/oracle', '/services/rituel']:
+    for svc in ['/services/tarot</loc>', '/services/compatibilite</loc>',
+                '/services/oracle</loc>', '/services/rituel</loc>']:
         assert svc in xml, f'Service canonique manquant : {svc}'
+    for excluded in ['/services/theme-natal</loc>', '/services/numerologie</loc>']:
+        assert excluded not in xml, f'URL non canonique présente : {excluded}'

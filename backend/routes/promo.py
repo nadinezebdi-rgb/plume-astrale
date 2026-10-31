@@ -9,10 +9,11 @@ from __future__ import annotations
 import logging
 import os
 from typing import Optional
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 import stripe
 
+from services.rate_limit import rate_limit
 from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ class ValidatePayload(BaseModel):
     amount: Optional[float] = None  # montant original en EUR
 
 
-@router.post('/validate')
+@router.post('/validate', dependencies=[Depends(rate_limit('promo_validate', 15))])
 async def validate_promo(payload: ValidatePayload):
     code = (payload.code or '').strip().upper()
     if not code:

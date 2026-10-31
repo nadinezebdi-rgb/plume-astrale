@@ -16,6 +16,7 @@ Structure : 10 slides × 6s = 60s
   9. Mon Espace          → "TON ESPACE PERSONNEL"
  10. CTA final           → "20 CRÉDITS OFFERTS · plume-astrale.fr"
 """
+import os
 import asyncio
 import subprocess
 from pathlib import Path
@@ -28,7 +29,7 @@ FINAL = OUT_DIR / "plume_astrale_slideshow_60s.mp4"
 
 BASE_URL = "https://consultation-astro.preview.emergentagent.com"
 TEST_EMAIL = "test@plume-astrale.fr"
-TEST_PASSWORD = "TestPlume2026!"
+TEST_PASSWORD = os.environ.get('TEST_USER_PASSWORD', '')
 
 FONT_SERIF = "/app/backend/assets/fonts/CormorantGaramond-Bold.ttf"
 FONT_ANTON = "/app/backend/assets/fonts/tiktok/Anton-Regular.ttf"
