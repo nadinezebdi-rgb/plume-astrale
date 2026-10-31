@@ -225,7 +225,7 @@ def _kerykeion_bronze_palette() -> dict[str, str]:
     Ce mapping DOIT couvrir toutes les `--kerykeion-*` référencées via `var(…)`
     dans les SVGs Kerykeion. Sert au substitueur `_resolve_kerykeion_vars`.
     """
-    B, BD, BL, I, ID, K = BRONZE, BRONZE_DARK, BRONZE_LIGHT, IVORY, IVORY_DARK, INK
+    B, BD, _BL, I, ID, K = BRONZE, BRONZE_DARK, BRONZE_LIGHT, IVORY, IVORY_DARK, INK
     p: dict[str, str] = {
         # Base colors
         'color-black': K, 'color-white': I,

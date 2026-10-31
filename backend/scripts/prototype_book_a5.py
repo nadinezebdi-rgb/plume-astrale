@@ -27,7 +27,6 @@ Format : A5 exact = 148 × 210 mm
   12. Dernière page Plume Astrale (blanc)
 """
 from __future__ import annotations
-import io
 import sys
 from pathlib import Path
 

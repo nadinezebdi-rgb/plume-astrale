@@ -4,22 +4,16 @@ Basé sur les données de /numerology/name, /numerology/personal-year, /numerolo
 Palette Plume Astrale avec images géométriques.
 """
 from __future__ import annotations
-from io import BytesIO
 from typing import Any, Dict, List, Optional
-from datetime import datetime
 
-from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
-from reportlab.pdfgen import canvas
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle,
-    Image as RLImage, KeepTogether,
+    Paragraph, Spacer, PageBreak, Table, TableStyle,
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
-from reportlab.graphics.shapes import Drawing, Circle, Rect, Line, Polygon
-from reportlab.graphics import renderPDF
+from reportlab.graphics.shapes import Drawing, Circle
 
 from services.pdf_bg import make_bg_canvas
 from services.pdf_theme import register_fonts as _register_luxury_fonts
@@ -30,7 +24,7 @@ from services.numerologie_cycles import build_cycles
 _register_luxury_fonts()
 
 # Palette Plume Astrale (source unique : services/pdf_theme.py)
-from services.pdf_theme import NIGHT, NIGHT_SOFT, GOLD, GOLD_LIGHT, LAVENDER, CREAM, MUTED
+from services.pdf_theme import NIGHT_SOFT, GOLD, GOLD_LIGHT, LAVENDER, CREAM
 
 # Traductions français
 NOMBRES_FR = {

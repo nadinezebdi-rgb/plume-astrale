@@ -17,7 +17,6 @@ Usage :
     )
 """
 from __future__ import annotations
-import asyncio
 import hashlib
 import json
 import logging
@@ -25,7 +24,6 @@ import os
 from typing import Any
 
 import litellm
-from emergentintegrations.llm.chat import LlmChat, UserMessage
 from emergentintegrations.llm.utils import get_integration_proxy_url
 from services.supabase_client import get_admin_client
 

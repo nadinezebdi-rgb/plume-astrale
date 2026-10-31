@@ -15,8 +15,7 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, Image, 
     PageTemplate, Frame, Flowable
 )
-from reportlab.pdfgen import canvas as pdfgen_canvas
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 
 # Palette print
 VIOLET_DARK = colors.white

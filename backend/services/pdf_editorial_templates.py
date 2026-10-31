@@ -24,7 +24,7 @@ Les autres seront ajoutés en Phase 2/3.
 """
 from __future__ import annotations
 import os
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from reportlab.lib.units import cm
 from reportlab.platypus import (
     Paragraph, Spacer, PageBreak, Image as RLImage, Table, TableStyle,
@@ -34,11 +34,10 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.lib.colors import HexColor
 
 from services.pdf_editorial_system import (
-    GOLD, CREAM, GREY_SUBTLE, GOLD_HEX, CREAM_HEX, GREY_HEX,
+    GOLD, CREAM, GREY_SUBTLE, GOLD_HEX, GREY_HEX,
     H_CHAPTER, H_PAGE, SUBTITLE, BODY, QUOTE, CALLOUT, CAPTION,
     LEAD_CHAPTER, LEAD_PAGE, LEAD_BODY, LEAD_QUOTE, LEAD_CALLOUT,
-    SP_XS, SP_S, SP_M, SP_L, SP_XL, SP_XXL,
-    styles_cormorant, styles_cormorant_italic, styles_cinzel,
+    SP_XS, SP_S, SP_M, SP_L, SP_XL, styles_cormorant, styles_cormorant_italic, styles_cinzel,
 )
 
 

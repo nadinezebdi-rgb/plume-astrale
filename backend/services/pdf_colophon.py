@@ -27,11 +27,10 @@ from datetime import datetime
 from io import BytesIO
 from typing import Optional
 
-from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import Paragraph, Spacer, PageBreak, Image as RLImage, KeepTogether
+from reportlab.platypus import Paragraph, Spacer, Image as RLImage, KeepTogether
 
 logger = logging.getLogger(__name__)
 

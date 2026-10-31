@@ -12,14 +12,11 @@ Structure :
 
 Style : navy #142342 + gold #D4AF37 (cohérent avec le PDF Thème Natal).
 """
-import copy
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
-from pptx.oxml.ns import qn
-from lxml import etree
 
 # ─── Design tokens ───────────────────────────────────────────────
 NAVY = RGBColor(0x14, 0x23, 0x42)

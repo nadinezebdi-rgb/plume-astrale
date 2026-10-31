@@ -17,8 +17,7 @@ from services.pdf_theme import (
     GOLD,                          # #D4AF37 (remplace #C5A059)
     CREAM,                         # #F5EEE0 (remplace #F3E5AB)
     LAVENDER as LIGHT_TEXT,        # #E3D7FF (remplace #E0D9F6)
-    register_fonts, font as _theme_font,
-)
+    )
 
 class ManuscritPDFGenerator:
     """Generate beautiful PDF manuscripts"""

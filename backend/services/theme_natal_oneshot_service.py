@@ -5,7 +5,6 @@ Fetch les données natales v3 + enrichit avec GPT-5.4 + génère le PDF luxe + e
 Mirror du pattern services/kabbale_service.py.
 """
 from __future__ import annotations
-import base64
 import logging
 import os
 from datetime import datetime, timezone

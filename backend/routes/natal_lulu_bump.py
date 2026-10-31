@@ -14,7 +14,7 @@ metadata.kind='natal_lulu_bump' et appelle `handle_bump_webhook`.
 """
 from __future__ import annotations
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, EmailStr
@@ -23,7 +23,6 @@ from routes.admin import require_admin
 from services.lulu_client import quote_print_job, verify_webhook_signature
 from services.natal_lulu_bump_service import (
     BASE_PRICE_FR_EUR, compute_client_price_eur, create_bump_checkout,
-    handle_bump_webhook,
 )
 
 router = APIRouter(prefix='/natal-print-bump', tags=['natal-print-bump'])

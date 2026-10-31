@@ -2,7 +2,7 @@
 import json
 import stripe
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 
 @dataclass

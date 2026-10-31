@@ -22,7 +22,7 @@ from reportlab.platypus import (
 )
 from reportlab.lib.colors import HexColor
 
-from services.pdf_theme import font, GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED
+from services.pdf_theme import font, GOLD, GOLD_LIGHT, CREAM, MUTED
 from services.pdf_luxury_theme import (
     luxury_bg, luxury_styles, illustration_url, _dl_image,
 )

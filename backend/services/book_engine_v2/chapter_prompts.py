@@ -18,7 +18,6 @@ LLM (déjà en place — on la réutilise).
 """
 from __future__ import annotations
 import logging
-from typing import Callable, Optional
 
 from services.book_engine_shared.domain import ChapterBlock
 from services.book_engine_shared.prose_generator import (
@@ -26,8 +25,6 @@ from services.book_engine_shared.prose_generator import (
     _call_claude,
     _parse_json_blocks,
     _blocks_to_chapter_blocks,
-    _fallback_chapter_iv,
-    extract_venus_signature,
     _fmt_sign_fr,
     _fmt_house,
     _fmt_deg,

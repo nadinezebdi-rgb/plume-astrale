@@ -24,9 +24,8 @@ import logging
 import os
 import re
 from datetime import datetime, timezone
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from db import get_db as _get_db
 

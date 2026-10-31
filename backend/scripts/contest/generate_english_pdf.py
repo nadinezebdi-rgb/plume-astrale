@@ -1,5 +1,5 @@
 """Génère le vrai PDF concours avec IA GPT en anglais pour Camille."""
-import os, sys, asyncio, time
+import sys, asyncio, time
 sys.path.insert(0, '/app/backend')
 from dotenv import load_dotenv
 load_dotenv('/app/backend/.env')

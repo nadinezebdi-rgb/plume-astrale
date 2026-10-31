@@ -15,14 +15,13 @@ Palette et polices : voir services.pdf_theme.
 """
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
-from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.platypus import Paragraph, Spacer, PageBreak
 
-from services.pdf_theme import NIGHT, GOLD, GOLD_LIGHT, CREAM, MUTED, LAVENDER, font
+from services.pdf_theme import NIGHT, GOLD, GOLD_LIGHT, CREAM, MUTED, font
 
 
 # ═══════════════════════════════════════════════════════════

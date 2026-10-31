@@ -25,7 +25,7 @@ import logging
 import os
 import uuid
 from datetime import datetime, timezone, timedelta
-from typing import Any, Optional
+from typing import Optional
 
 from services.supabase_client import get_admin_client
 

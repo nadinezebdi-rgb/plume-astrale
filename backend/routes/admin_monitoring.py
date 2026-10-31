@@ -249,7 +249,6 @@ async def admin_background_loops_status(_admin: dict = Depends(require_admin)):
     """
     import os as _os
     import socket as _socket
-    from fastapi import Request as _Req  # local pour garder la signature propre
 
     # On accède à l'état posé au startup
     from server import app as _app  # type: ignore

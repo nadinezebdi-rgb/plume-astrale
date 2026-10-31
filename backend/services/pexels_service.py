@@ -6,7 +6,6 @@ Rate limit: 200 req/h, 20k req/month on free tier.
 """
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 from pathlib import Path

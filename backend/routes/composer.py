@@ -11,7 +11,6 @@ la liste de slugs — le serveur recalcule avec la règle 29/19/99.
 """
 from __future__ import annotations
 import logging
-import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Request

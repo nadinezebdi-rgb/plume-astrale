@@ -17,7 +17,7 @@ from __future__ import annotations
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib import colors
-from reportlab.platypus import Paragraph, Spacer, KeepTogether
+from reportlab.platypus import Paragraph, Spacer
 from reportlab.lib.units import cm
 
 

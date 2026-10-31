@@ -10,7 +10,6 @@ modèle listé dans `pdf_editorial_templates.py`. Ce fichier définit :
 """
 from __future__ import annotations
 from reportlab.lib.colors import HexColor
-from reportlab.lib.units import cm
 
 # ─── PALETTE ─────────────────────────────────────────────────────────
 BG_NIGHT     = HexColor('#FFFFFF')

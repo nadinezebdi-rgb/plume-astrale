@@ -3,7 +3,6 @@ Orchestrateur post-paiement pour le pack "kabbale_arbre_de_vie" (39 EUR).
 Fetch les donnees /kabbalah/tree-of-life-chart + genere le PDF + envoie l'email.
 """
 from __future__ import annotations
-import asyncio
 import base64
 import logging
 import os
@@ -74,7 +73,6 @@ async def handle_kabbale_webhook(session_id: str) -> None:
 
     # 2) Generation PDF (avec enrichissement IA Soléna transversal)
     pdf_bytes = None
-    pdf_path = None
     filename = f'kabbale_{session_id[-16:]}.pdf'
     try:
         # SEC-020 : enrichissement narratif IA (voix Soléna, 6 sections premium).

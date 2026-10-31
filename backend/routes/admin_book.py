@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 
 from services.book_engine_shared.pipeline import (
     ASSETS_DIR as PIPELINE_ASSETS_DIR,

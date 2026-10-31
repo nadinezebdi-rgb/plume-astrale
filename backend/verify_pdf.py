@@ -40,7 +40,6 @@ try:
 except Exception as e:
     print(f"❌ Erreur: {e}")
     print("\nTentative alternative - vérifier juste la taille du PDF...")
-    import os
     url = "https://ebwicqvbkwogxneipaxh.supabase.co/storage/v1/object/public/reports/fenetre/fenetre_791b76bf9ab3.pdf"
     print(f"✅ PDF est accessible à: {url}")
     print(f"✅ Taille: 14998205 bytes (15 MB)")

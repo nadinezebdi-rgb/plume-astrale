@@ -7,7 +7,7 @@ Boucle background asyncio idempotente : ne relance pas si déjà exécuté pour 
 from __future__ import annotations
 import asyncio
 import logging
-from datetime import datetime, time, timezone, timedelta
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 logger = logging.getLogger(__name__)

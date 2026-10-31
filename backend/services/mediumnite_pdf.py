@@ -312,7 +312,7 @@ def _build_ai_enrichment_pdf(prenom: str, birth_date_iso: str,
     """
     from io import BytesIO as _BIO
     from reportlab.platypus import (SimpleDocTemplate as _SDT, Paragraph as _Par,
-                                     Spacer as _Sp, PageBreak as _PB)
+                                     Spacer as _Sp)
     from reportlab.lib.pagesizes import A4 as _A4
     from reportlab.lib.styles import getSampleStyleSheet as _gss, ParagraphStyle as _PS
     from reportlab.lib.enums import TA_JUSTIFY as _TAJ, TA_CENTER as _TAC

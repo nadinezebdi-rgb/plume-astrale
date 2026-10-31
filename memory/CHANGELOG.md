@@ -3044,3 +3044,16 @@ Sur **73 paiements confirmés en base, ZÉRO n'était tracké dans Meta**. Le tu
   - Comportement identique, 27 tests pytest + 43 PDFs toujours verts
 - **#5 admin_pdf_engine_health complexité** (CC 28 → ~5) : 6 helpers privés extraits (un par type de check : chromium flags, chromium binary, fonts, LLM key, Supabase, cache dirs)
 - **Faux positifs écartés** (non-fix justifié) : hardcoded "secrets" dans tests = anon_key Supabase (publique) + creds test ; random vs secrets = tirages tarot/positionnement visuel non-crypto ; MD5 = checksum comparaison d'images ; 90 undefined vars = pas de liste fournie
+
+## 2026-02 · CI backend-lint (ruff) — complexity gate
+
+- **`backend/ruff.toml`** : config dédiée
+  - `max-complexity = 15` (McCabe cyclomatique)
+  - Règles : C901 (complexité), F841 (unused vars), F401 (unused imports), E722 (bare except)
+  - Line-length désactivée (pas de style check, on reste focalisé)
+- **Nettoyage auto appliqué** :
+  - 212 imports inutilisés supprimés
+  - 20 variables locales mortes supprimées (dont 3 `BytesIO()` orphelins)
+- **32 fonctions legacy C901 grandfathered** via `per-file-ignores` — toute NOUVELLE fonction > 15 bloque la CI
+- **Nouveau job GitHub Actions** `backend-lint` dans `.github/workflows/ci.yml` — ruff check avant pytest
+- Testing : 27 pytest critiques + 43 PDFs regression toujours verts

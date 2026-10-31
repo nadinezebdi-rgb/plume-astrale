@@ -13,7 +13,6 @@ Structure (60s total):
 Output: /app/backend/cache/demo_final/plume_astrale_demo_60s.mp4
 """
 import subprocess
-import sys
 from pathlib import Path
 
 SORA_DIR = Path('/app/backend/cache/sora_demo')

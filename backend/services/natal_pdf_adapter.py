@@ -6,7 +6,6 @@ les 10 planètes + Ascendant + synthese_aspects (dict rempli par
 planétaires + une page synthèse d'aspects. Sinon fallback 5 planètes classiques.
 """
 import logging
-from services.natal_pdf_v2 import build_natal_pdf_v2
 
 logger = logging.getLogger(__name__)
 

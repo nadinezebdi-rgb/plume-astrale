@@ -27,11 +27,10 @@ RGPD :
 """
 from __future__ import annotations
 import logging
-import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, Dict, List
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from db import get_db as _get_db

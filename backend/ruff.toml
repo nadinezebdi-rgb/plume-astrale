@@ -1,0 +1,78 @@
+# Ruff config — backend Plume Astrale (2026-02)
+# Objectif : refuser toute future fonction de complexité > 15 avant qu'elle n'arrive en prod.
+#
+# Local : `cd backend && ruff check .`
+# CI    : voir .github/workflows/ci.yml (étape "Ruff complexity")
+
+line-length = 120
+target-version = "py311"
+
+# Exclusions : scripts one-shot, candidats à suppression, venv
+exclude = [
+    "_gen_*.py",
+    "_candidates_deletion_*.txt",
+    "scripts/**/_oneshot_*.py",
+    "venv/**",
+    ".venv/**",
+    "__pycache__/**",
+    "assets/**",
+    "tests/_fixtures/**",
+]
+
+[lint]
+# ─── Règles actives ───
+# C901 : max-complexity (McCabe cyclomatique)
+# F841 : variable assignée mais jamais utilisée
+# E722 : bare except
+# F401 : imports non utilisés (déjà géré par pyflakes mais explicit)
+# Nous commençons strict mais ciblé — pas de style check (E501 line-length désactivé).
+select = ["C901", "F841", "E722", "F401"]
+
+ignore = [
+    # Autoriser les tests à être "sales" (fixtures, mocks)
+    # F401 autorisé dans tests/* via per-file-ignores plus bas
+]
+
+[lint.mccabe]
+# ⚠️ Seuil durci à 15 (code review 2026-02 · Nao).
+# Toute fonction au-dessus doit être extraite en helpers avant merge.
+max-complexity = 15
+
+[lint.per-file-ignores]
+# Les tests ont souvent des imports pour effet de bord (fixtures, mocks)
+"tests/**" = ["F401", "F841"]
+"**/__init__.py" = ["F401"]
+
+# ─── Fichiers legacy avec C901 (complexité > 15) ───
+# Grandfather : la CI bloque toute NOUVELLE fonction > 15 dans tout le reste du code.
+# Ces fichiers doivent être refactorés progressivement — chaque PR qui y touche
+# devrait réduire la complexité (extraire 1-2 helpers au moins).
+# Ne PAS ajouter de nouveau fichier ici sans justification écrite.
+"routes/admin_payments.py" = ["C901"]            # payments_health (24)
+"routes/astrosexo.py" = ["C901"]                  # astrosexo_personal (16)
+"routes/lecture_complete.py" = ["C901"]           # lecture_complete_admin_orders (17), _refund (27)
+"routes/theme_natal_oneshot.py" = ["C901"]        # theme_natal_oneshot_checkout (16)
+"scripts/retrofit_lost_pdfs.py" = ["C901"]        # main (18)
+"server.py" = ["C901"]                            # _process_stripe_event (69), tarot_complet_endpoint (16)
+"services/astrocarto_manuscript_builder.py" = ["C901"]   # build_astrocarto_manuscript (17)
+"services/astrocartographie_service.py" = ["C901"]       # handle_astrocartographie_webhook (21)
+"services/book_engine_v2/vendor/natal_wheel_kit.py" = ["C901"]  # build_wheel (16)
+"services/french_polish.py" = ["C901"]            # polish_dict (26)
+"services/kabbale_manuscript_builder.py" = ["C901"]      # build_kabbale_manuscript (26)
+"services/kabbale_pdf.py" = ["C901"]              # _sephiroth_pages (17)
+"services/lecture_complete_bundle.py" = ["C901"]  # handle_lecture_complete_webhook (20)
+"services/lecture_complete_sequence.py" = ["C901"]       # _process_transaction (20)
+"services/meta_capi.py" = ["C901"]                # send_capi_event (16)
+"services/natal_book_service.py" = ["C901"]       # generate_enriched_natal_pdf (19)
+"services/natal_manuscript_builder.py" = ["C901"] # build_natal_manuscript (32)
+"services/natal_pdf_adapter.py" = ["C901"]        # generate_manuscrit_pdf (42), _find_sign (16)
+"services/natal_pdf_qa.py" = ["C901"]             # qa_check_natal_pdf (30)
+"services/natal_pdf_v2.py" = ["C901"]             # _enhanced_personal_analysis_sections (46)
+"services/pack_karmique_pdf.py" = ["C901"]        # generate_pack_karmique_pdf (17)
+"services/plume_chat.py" = ["C901"]               # plume_chat (16), plume_chat_stream (21)
+"services/print_book_renderer.py" = ["C901"]      # _append_blocks (25)
+"services/self_heal.py" = ["C901"]                # self_heal_if_paid
+"services/shared_tirage_png_renderer.py" = ["C901"]
+"services/tarot_synthese_pdf.py" = ["C901"]
+"services/theme_natal_oneshot_service.py" = ["C901"]
+"services/voyage_karmique_service.py" = ["C901"] # handle_voyage_karmique_webhook (20)

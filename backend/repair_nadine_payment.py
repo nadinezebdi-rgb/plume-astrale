@@ -3,7 +3,6 @@
 
 import sys
 import asyncio
-import json
 from datetime import datetime
 
 sys.path.insert(0, '.')

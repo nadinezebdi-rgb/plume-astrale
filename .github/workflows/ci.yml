@@ -11,6 +11,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  backend-lint:
+    name: Backend · ruff (complexity ≤ 15)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install ruff
+        run: pip install ruff==0.6.9
+
+      - name: Ruff — complexity ≤ 15, pas d'unused vars, pas de bare except
+        working-directory: backend
+        # Config dans backend/ruff.toml :
+        #   • max-complexity = 15 (McCabe cyclomatique)
+        #   • Fichiers legacy > 15 : grandfather dans per-file-ignores
+        #   • Toute nouvelle fonction > 15 doit être refactorée avant merge
+        run: ruff check .
+
   backend-tests:
     name: Backend · pytest
     runs-on: ubuntu-latest

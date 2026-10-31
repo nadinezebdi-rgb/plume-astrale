@@ -27,7 +27,7 @@ import tempfile
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Optional
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -238,7 +238,7 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
       Blanches pour atteindre un multiple de 4
     """
     date_fr, time_fr, city, birth_line = _fmt_birth_line(m)
-    edition_label = m.edition.value if isinstance(m.edition, Edition) else str(m.edition)
+    m.edition.value if isinstance(m.edition, Edition) else str(m.edition)
     edition_year = (m.created_at.year if m.created_at else date.today().year)
 
     specs: list[PageSpec] = []
@@ -288,7 +288,6 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
         'toc_entries': [],      # patché après
     }, counts_in_pagination=False)
     specs.append(toc_spec)
-    toc_page_num = page_num  # mémorise pour folio
     page_num += 1
 
     # 4ter. Blanche verso sommaire

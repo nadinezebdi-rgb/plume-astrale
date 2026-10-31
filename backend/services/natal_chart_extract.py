@@ -21,7 +21,7 @@ littéraire (interprétation de chaque aspect / maison) est fait en amont par
 """
 from __future__ import annotations
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

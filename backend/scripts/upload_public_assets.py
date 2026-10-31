@@ -5,7 +5,7 @@
 Sortie : /app/backend/assets/public_supabase_manifest.json
 """
 from __future__ import annotations
-import sys, os, json, time
+import sys, json, time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from dotenv import load_dotenv

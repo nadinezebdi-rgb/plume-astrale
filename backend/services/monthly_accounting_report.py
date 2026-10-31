@@ -15,7 +15,7 @@ from __future__ import annotations
 import io
 import logging
 from calendar import monthrange
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
 from reportlab.lib.pagesizes import A4

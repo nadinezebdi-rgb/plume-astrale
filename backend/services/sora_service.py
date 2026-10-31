@@ -15,7 +15,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 import requests
 from dotenv import load_dotenv

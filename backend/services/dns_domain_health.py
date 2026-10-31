@@ -13,7 +13,7 @@ import logging
 import os
 import socket
 import ssl
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 

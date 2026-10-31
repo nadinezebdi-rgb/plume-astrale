@@ -19,8 +19,7 @@ from datetime import datetime
 from typing import Optional
 
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm, mm
-from reportlab.lib.colors import HexColor
+from reportlab.lib.units import cm
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image as RLImage,
     Table, TableStyle, KeepTogether, CondPageBreak,
@@ -30,7 +29,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 from services.pdf_theme import (
     register_fonts, make_styles, font,
-    GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED, NIGHT, NIGHT_SOFT, PALETTE,
+    GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED, NIGHT,
 )
 
 # Enregistre les polices luxe (Cormorant + Cinzel + OrnamentSerif) au chargement

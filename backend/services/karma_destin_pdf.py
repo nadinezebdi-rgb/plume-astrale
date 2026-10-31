@@ -4,7 +4,6 @@ Basé sur données de /analysis/karmic + transits + nœuds lunaires.
 Français 100% + analyse spirituelle profonde.
 """
 from __future__ import annotations
-from io import BytesIO
 from typing import Any, Dict, List, Optional
 
 from reportlab.lib import colors
@@ -12,7 +11,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle,
+    Paragraph, Spacer, PageBreak,
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 

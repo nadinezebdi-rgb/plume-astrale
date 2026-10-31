@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Spacer, PageBreak, Image
+from reportlab.platypus import SimpleDocTemplate, Spacer, PageBreak
 
 from services.kabbale_pdf import (
     _p, _make_styles, _bg_canvas, _intro as _kabbale_intro,

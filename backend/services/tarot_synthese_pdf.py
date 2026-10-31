@@ -13,10 +13,10 @@ from xml.sax.saxutils import escape as xml_escape
 from typing import Any, Dict, List, Optional
 
 from reportlab.lib.units import cm
-from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import (
-    Image as RLImage, Paragraph, Spacer, PageBreak, KeepTogether,
+    Image as RLImage, Paragraph, Spacer, PageBreak,
 )
 
 from services.pdf_luxury_theme import (

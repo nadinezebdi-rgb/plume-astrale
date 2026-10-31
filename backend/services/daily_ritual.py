@@ -13,7 +13,7 @@ Persistance : Supabase (service_role). LLM : OpenAI natif via integrations.llm.c
 import os
 import hashlib
 import logging
-from datetime import datetime, date, timezone
+from datetime import datetime, date
 from typing import Optional, Dict, Any, List
 from integrations.llm.chat import LlmChat, UserMessage
 from services.supabase_client import get_admin_client

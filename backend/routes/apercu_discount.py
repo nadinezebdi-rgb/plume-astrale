@@ -17,7 +17,7 @@ import os
 import time
 from datetime import datetime, timezone
 from html import escape
-from typing import Dict, Optional
+from typing import Dict
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Request

@@ -14,12 +14,11 @@ Usage :
 """
 from __future__ import annotations
 import logging
-import os
 from pathlib import Path
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
@@ -142,7 +141,7 @@ def make_styles() -> dict[str, ParagraphStyle]:
     register_fonts()
     body_font = font('Cormorant', 'Helvetica')
     body_italic = font('Cormorant-Italic', 'Helvetica-Oblique')
-    body_bold = font('Cormorant-Bold', 'Helvetica-Bold')
+    font('Cormorant-Bold', 'Helvetica-Bold')
     display_font = font('Cinzel', 'Helvetica')
     display_bold = font('Cinzel-Bold', 'Helvetica-Bold')
 

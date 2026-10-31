@@ -12,7 +12,7 @@ par le pipeline enrich() séparément, à partir de l'astro_data.
 Séparation stricte contenu / structure — cohérent avec la Section 26 du brief.
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 

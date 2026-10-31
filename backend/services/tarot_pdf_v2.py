@@ -7,9 +7,8 @@ from __future__ import annotations
 import io
 from services.pdf_luxury_theme import (
     build_luxury_doc, luxury_styles, luxury_bg,
-    cover_page, opening_page, teaser_page, waouh_quote_page,
-    chapter_illustration, planet_glyph_page, planet_analysis_page, emotional_ending,
-    illustration_url, _dl_image,
+    cover_page, opening_page, teaser_page, chapter_illustration, emotional_ending,
+    _dl_image,
 )
 from reportlab.lib.units import cm
 from reportlab.platypus import Image as RLImage, Paragraph, Spacer, PageBreak

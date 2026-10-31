@@ -18,7 +18,6 @@ from __future__ import annotations
 import html
 import io
 import re
-import textwrap
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -212,7 +211,7 @@ def render_ex_libris_png(
     kicker_font = _font('Italic', 28)
     body_font = _font('Regular', 32)
     sig_font = _font('Italic', 26)
-    small_font = _font('Regular', 20)
+    _font('Regular', 20)
 
     title_main = 'Ex Libris'
     title_sub = f'Signature astrale de {prenom}'
