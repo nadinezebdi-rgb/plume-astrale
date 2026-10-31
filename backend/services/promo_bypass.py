@@ -1,9 +1,5 @@
 """
-<<<<<<< HEAD
-SEC-004 — Bypass Stripe via code promo 100% remise.
-=======
 SEC-004 — Bypass Stripe via code promo 100% remise (comptes autorisés uniquement).
->>>>>>> origin/main
 
 Avant : n'importe qui pouvant deviner un code (ADMIN26, PLUME15…) obtenait
 un PDF premium gratuit via un guest checkout.
@@ -18,10 +14,6 @@ backend le lit dans `PROMO_BYPASS_CODE` (défaut `TOUT2026`) et ne le renvoie ja
 
 Les codes % (KABBALE20, etc.) ne sont PAS concernés : ils passent toujours
 par Stripe avec la remise appliquée, aucun bypass.
-
-TEST CODES (2026-02) : liste blanche de codes qui bypass la check admin.
-Chaque code a un max_uses court en base (hard cap) pour limiter les dégâts
-si leaké. À ne JAMAIS étendre sans accord admin.
 """
 from __future__ import annotations
 import logging
@@ -30,12 +22,6 @@ from typing import Optional
 from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
-
-# Codes qui autorisent le bypass sans check is_admin.
-# Hard cap côté base (max_uses) + revocable instantanément via /admin/promo.
-_TEST_CODES_NO_ADMIN_CHECK = frozenset({
-    'TESTPDF2026',  # Nadine — essais PDFs sans compte admin (max 20 usages)
-})
 
 
 def _is_admin(user_id: str) -> bool:
@@ -80,13 +66,8 @@ def try_consume_promo(
     """Consomme un code promo 100% remise.
 
     Retourne True uniquement si :
-<<<<<<< HEAD
-      1. Code dans la liste blanche test (TESTPDF2026, …) → bypass admin check.
-         OU `admin_user` authentifié avec `is_admin=true`.
-=======
       1. Un utilisateur authentifié est fourni ET (`is_admin=true` en base OU
          email dans `PROMO_BYPASS_ALLOWED_EMAILS`).
->>>>>>> origin/main
       2. Le code existe, actif, quota non atteint.
       3. Le décrément atomique a réussi (CAS).
 
@@ -95,19 +76,6 @@ def try_consume_promo(
     if not code or not code.strip():
         return False
 
-<<<<<<< HEAD
-    normalized = code.strip().upper()
-
-    # SEC-004 bypass : les codes de test (whitelist) sautent le check admin.
-    is_test_code = normalized in _TEST_CODES_NO_ADMIN_CHECK
-    if not is_test_code:
-        if not admin_user or not admin_user.get('id'):
-            logger.info(f'[promo_bypass] REJECT {code!r} — no admin user (guest bypass blocked)')
-            return False
-        if not _is_admin(admin_user['id']):
-            logger.warning(f'[promo_bypass] REJECT {code!r} — user {admin_user["id"]} not admin')
-            return False
-=======
     # SEC-004 : bypass réservé aux comptes authentifiés autorisés.
     if not admin_user or not admin_user.get('id'):
         logger.info('[promo_bypass] REJECT — no authenticated user (guest bypass blocked)')
@@ -119,7 +87,6 @@ def try_consume_promo(
     normalized = code.strip().upper()
     if normalized == ADMIN_BYPASS_SENTINEL:
         normalized = get_bypass_code()
->>>>>>> origin/main
     try:
         sb = get_admin_client()
         r = sb.table('promo_codes').select('*').eq('code', normalized).eq('active', True).maybe_single().execute()
@@ -148,19 +115,14 @@ def try_consume_promo(
         try:
             sb.table('promo_code_redemptions').insert({
                 'code': normalized,
-                'user_id': (admin_user or {}).get('id') or 'guest-test',
-                'user_email': (admin_user or {}).get('email'),
+                'user_id': admin_user['id'],
+                'user_email': admin_user.get('email'),
                 'product': product or '',
             }).execute()
         except Exception as e:
             logger.info(f'[promo_bypass] redemption log skipped for {normalized}: {e}')
 
-<<<<<<< HEAD
-        who = admin_user.get('id') if admin_user else 'test-guest'
-        logger.info(f'[promo_bypass] OK — {who} consumed {normalized} ({used + 1}/{max_uses})')
-=======
         logger.info(f'[promo_bypass] OK — user {admin_user["id"]} consumed {normalized} ({used + 1}/{max_uses})')
->>>>>>> origin/main
         return True
     except Exception as e:
         logger.warning(f'[promo_bypass] validation failed: {e}')
